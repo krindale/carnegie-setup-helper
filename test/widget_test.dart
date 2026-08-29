@@ -22,7 +22,7 @@ void main() {
     expect(find.text('게임 준비'), findsOneWidget);
     expect(find.text('부서 타일 뽑기'), findsOneWidget);
 
-    await tester.tap(find.text('2인'));
+    await tester.tap(find.text('1-2인'));
     await tester.pump();
     await tester.tap(find.text('부서 타일 뽑기'));
     await tester.pumpAndSettle();

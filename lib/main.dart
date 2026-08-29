@@ -64,6 +64,9 @@ const regionColors = <String, Color>{
   '동부': Color(0xFF885F88),
 };
 
+/// 1인 게임 준비는 2인과 동일하므로 하나의 선택지로 합친다.
+String playerLabel(int p) => p == 2 ? '1-2인' : '$p인';
+
 /// Per-department exclusion state, in physical-setup terms.
 enum TileState { removeBoth, removeOne, keepBoth }
 
@@ -119,26 +122,11 @@ class _SetupScreenState extends State<SetupScreen> {
                           const SizedBox(height: CarbonSpacing.s3),
                           Column(
                             children: [
-                              for (final row in const [
-                                [1, 2],
-                                [3, 4],
-                              ]) ...[
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    for (final p in row) ...[
-                                      Expanded(
-                                        child: _PlayerTile(
-                                          players: p,
-                                          selected: _players == p,
-                                          onTap: () =>
-                                              setState(() => _players = p),
-                                        ),
-                                      ),
-                                      if (p != row.last)
-                                        const SizedBox(width: CarbonSpacing.s3),
-                                    ],
-                                  ],
+                              for (final p in const [2, 3, 4]) ...[
+                                _PlayerTile(
+                                  players: p,
+                                  selected: _players == p,
+                                  onTap: () => setState(() => _players = p),
                                 ),
                                 const SizedBox(height: CarbonSpacing.s3),
                               ],
@@ -250,7 +238,7 @@ class _PlayerTile extends StatelessWidget {
                   const SizedBox(width: CarbonSpacing.s3),
                   Expanded(
                     child: Text(
-                      '$players인',
+                      playerLabel(players),
                       style: CarbonText.heading03.copyWith(
                         fontWeight: selected
                             ? FontWeight.w700
@@ -348,7 +336,7 @@ class _ResultScreenState extends State<ResultScreen> {
                         selected: _tab == 1,
                         onTap: () => setState(() => _tab = 1),
                       ),
-                      if (_result.playerCount == 1)
+                      if (_result.playerCount == 2)
                         _TabButton(
                           label: '1인 도우미',
                           icon: Icons.person_outline,
@@ -391,7 +379,7 @@ class _ResultScreenState extends State<ResultScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      '${_result.playerCount}인 게임',
+                      '${playerLabel(_result.playerCount)} 게임',
                       style: CarbonText.heading05,
                     ),
                   ),
