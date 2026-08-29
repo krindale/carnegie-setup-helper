@@ -709,19 +709,21 @@ class _ResultScreenState extends State<ResultScreen> {
           left: BorderSide(color: CarbonColors.interactive, width: 4),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: CarbonColors.textPrimary),
-          const SizedBox(width: CarbonSpacing.s3),
-          Text(title, style: CarbonText.heading02),
-          const SizedBox(width: CarbonSpacing.s3),
-          Expanded(
-            child: Text(
-              subtitle,
-              style: CarbonText.helperText01,
-              overflow: TextOverflow.ellipsis,
-            ),
+          Row(
+            children: [
+              Icon(icon, size: 18, color: CarbonColors.textPrimary),
+              const SizedBox(width: CarbonSpacing.s3),
+              Expanded(child: Text(title, style: CarbonText.heading02)),
+            ],
           ),
+          if (subtitle.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(subtitle, style: CarbonText.helperText01),
+            ),
         ],
       ),
     );
