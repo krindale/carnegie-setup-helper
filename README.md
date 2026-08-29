@@ -3,6 +3,8 @@
 카네기(Carnegie) 보드게임의 게임 준비를 도와주는 앱입니다.
 Android / iOS / 웹을 지원합니다 (Flutter).
 
+> 저장소: https://github.com/krindale/carnegie-setup-helper (비공개)
+
 ## 기능
 
 - **인원 선택 (1~4인, 2×2 그리드)** — 인원수만 고르면 셋업이 한 번에 준비됩니다.
@@ -32,6 +34,26 @@ Android / iOS / 웹을 지원합니다 (Flutter).
 - 중립 디스크 배치: 규칙서 4쪽 (세팅 9) + `CARNEGIE_SETUP_RANDOMIZER__V1.xlsx`
   (1인 게임 카드 20장의 도시/기부 데이터)
 - 1인 게임 규칙: 규칙서 18–19쪽
+
+## 프로젝트 구조
+
+```
+lib/
+  main.dart         # 앱/테마, 게임 준비, 결과(부서 타일·중립 디스크·1인 도우미 탭)
+  carbon.dart       # 디자인 토큰 + 공용 위젯 (버튼, 태그, 탭, 스위처)
+  departments.dart  # 부서 16종 데이터, 인원별 제외 로직
+  setup9.dart       # 중립 디스크(세팅 9) 카드 데이터·배치 로직, 지역별 도시
+  reference.dart    # 부서 도감, 아이콘 참조표
+assets/
+  departments/      # 부서 타일 이미지 16종 (투명 배경)
+  reficons/         # 아이콘 참조표 아이콘 47개
+  pcount/           # 인원(1~4인) 아이콘
+  icon/             # 앱 런처 아이콘 원본
+  fonts/            # SUIT 서체
+```
+
+개발 관련 상세(빌드 주의사항, 에셋 파이프라인, 디자인 규칙)는
+[CLAUDE.md](CLAUDE.md)를 참고하세요.
 
 ## 실행 / 빌드
 
