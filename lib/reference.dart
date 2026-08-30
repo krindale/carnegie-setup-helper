@@ -24,7 +24,23 @@ class DeptCatalogScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: CarbonSpacing.s5,
                   ),
-                  child: TopBar(onBack: () => Navigator.of(context).pop()),
+                  child: TopBar(
+                    onBack: () => Navigator.of(context).pop(),
+                    actions: [
+                      TopIconButton(
+                        icon: Icons.info_outline,
+                        tooltip: '부서 조직 방법',
+                        onTap: () => showModalBottomSheet<void>(
+                          context: context,
+                          backgroundColor: CarbonColors.background,
+                          shape: const RoundedRectangleBorder(),
+                          constraints: const BoxConstraints(maxWidth: 672),
+                          isScrollControlled: true,
+                          builder: (context) => const _OrganizeGuideSheet(),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: ListView(
@@ -39,7 +55,7 @@ class DeptCatalogScreen extends StatelessWidget {
                           color: CarbonColors.textSecondary,
                         ),
                       ),
-                      const SizedBox(height: CarbonSpacing.s5),
+                      const SizedBox(height: CarbonSpacing.s3),
                       for (final type in DeptType.values) ...[
                         Container(
                           margin: const EdgeInsets.only(top: CarbonSpacing.s4),
@@ -87,6 +103,97 @@ class DeptCatalogScreen extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 부서 조직 방법·비용 안내 모달 시트
+/// (근거: 규칙서 10쪽 "전략 기획", 6쪽 4.2 활성화 비용 — UI에는 미표기).
+class _OrganizeGuideSheet extends StatelessWidget {
+  const _OrganizeGuideSheet();
+
+  static const _rows = <(IconData, String)>[
+    (
+      Icons.work_outline,
+      '경영 행동에서 "전략 기획" 부서의 활성화된 직원 1명당 새 부서 1개를 '
+          '조직할 수 있습니다.',
+    ),
+    (
+      Icons.inventory_2_outlined,
+      '비용: 상품 큐브 2개 — 회사판의 아무 빈칸에 배치. 직원이 1명 이상 '
+          '있는 빈칸이면 큐브 1개만 지불합니다.',
+    ),
+    (
+      Icons.looks_one_outlined,
+      '첫 번째로 조직하는 부서는 게임 준비(10번)에서 선택해 둔 부서여야 '
+          '합니다.',
+    ),
+    (Icons.block, '같은 부서는 한 회사에 2개 이상 둘 수 없습니다.'),
+    (
+      Icons.paid_outlined,
+      '타일 사무공간 아래의 금액은 조직 비용이 아니라, 라운드 종료 시 그 '
+          '자리 직원을 활성화할 때 내는 비용입니다.',
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(CarbonSpacing.s6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.add_business_outlined,
+                  size: 20,
+                  color: CarbonColors.textSecondary,
+                ),
+                const SizedBox(width: CarbonSpacing.s3),
+                Expanded(child: Text('부서 조직 방법', style: CarbonText.heading03)),
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: const Padding(
+                    padding: EdgeInsets.all(CarbonSpacing.s2),
+                    child: Icon(
+                      Icons.close,
+                      size: 20,
+                      color: CarbonColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: CarbonSpacing.s5),
+            for (final (icon, text) in _rows)
+              Padding(
+                padding: const EdgeInsets.only(bottom: CarbonSpacing.s3),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        icon,
+                        size: 16,
+                        color: CarbonColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: CarbonSpacing.s3),
+                    Expanded(
+                      child: Text(
+                        text,
+                        style: CarbonText.body01.copyWith(height: 1.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
         ),
       ),
     );
