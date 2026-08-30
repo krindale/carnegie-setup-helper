@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'carbon.dart';
 import 'departments.dart';
+import 'dept_tile.dart';
 import 'reference.dart';
 import 'setup9.dart';
 
@@ -433,13 +434,11 @@ class _ResultScreenState extends State<ResultScreen> {
                     horizontal: CarbonSpacing.s4,
                     vertical: CarbonSpacing.s3,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: CarbonColors.layer01,
                     border: Border(
-                      left: BorderSide(
-                        color: CarbonColors.interactive,
-                        width: 4,
-                      ),
+                      // 타일 넘버 플레이트와 같은 유형 컬러.
+                      left: BorderSide(color: deptTypeColorOf(type), width: 4),
                     ),
                   ),
                   child: Row(
@@ -469,17 +468,11 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       sliver: SliverLayoutBuilder(
         builder: (context, constraints) {
-          // 카드 = 타이틀 행 + 타일 이미지(497:426), 내용 높이에 맞춤.
+          // 셀 = 타일 자체(497:426). 타일이 곧 카드다.
           final width = constraints.crossAxisExtent;
           final cols = (width / 240).ceil().clamp(1, 6);
           final colWidth = (width - (cols - 1) * CarbonSpacing.s4) / cols;
-          final imageHeight = (colWidth - 2 * CarbonSpacing.s3) / (497 / 426);
-          final extent =
-              CarbonSpacing.s3 +
-              24 +
-              CarbonSpacing.s2 +
-              imageHeight +
-              CarbonSpacing.s3;
+          final extent = colWidth / (497 / 426);
           return SliverGrid.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cols,
@@ -804,14 +797,14 @@ class _DeptCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (tagIcon, tagCount, tagBg, tagFg) = switch (state) {
       TileState.removeBoth => (
-        Icons.close,
-        '2',
+        Icons.delete,
+        '×2',
         const Color(0x99DA1E28),
         CarbonColors.textOnColor,
       ),
       TileState.removeOne => (
-        Icons.close,
-        '1',
+        Icons.delete,
+        '×1',
         const Color(0x99F1C21B),
         CarbonColors.textOnColor,
       ),
@@ -823,84 +816,48 @@ class _DeptCard extends StatelessWidget {
       ),
     };
 
-    return Material(
-      color: CarbonColors.background,
-      shape: const RoundedRectangleBorder(
-        side: BorderSide(color: CarbonColors.borderSubtle),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        hoverColor: CarbonColors.layer01,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                CarbonSpacing.s3,
-                CarbonSpacing.s3,
-                CarbonSpacing.s3,
-                0,
-              ),
-              child: Text(
-                '${dept.number}. ${dept.ko}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: CarbonText.heading02,
-              ),
+    // 타일 자체가 그리드 셀이다. 상태 배지만 엠블럼 영역 우하단에 오버레이.
+    return LayoutBuilder(
+      builder: (context, constraints) => Stack(
+        children: [
+          Positioned.fill(child: DeptTile(dept: dept)),
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(onTap: onTap, hoverColor: const Color(0x14353B3C)),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  CarbonSpacing.s3,
-                  CarbonSpacing.s2,
-                  CarbonSpacing.s3,
-                  CarbonSpacing.s3,
+          ),
+          // 효과 바 높이(기준 400px 시안의 72px)에 비례해 그 위에 놓는다.
+          Positioned(
+            bottom: constraints.maxWidth * 72 / 400 + CarbonSpacing.s3,
+            right: CarbonSpacing.s3,
+            child: IgnorePointer(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: tagBg,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                child: Stack(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Positioned.fill(
-                      child: Image.asset(
-                        dept.image,
-                        cacheWidth: 512,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    Positioned(
-                      bottom: CarbonSpacing.s3,
-                      right: CarbonSpacing.s3,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: tagBg,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(tagIcon, size: 14, color: tagFg),
-                            if (tagCount != null) ...[
-                              const SizedBox(width: 2),
-                              Text(
-                                tagCount,
-                                style: CarbonText.label01.copyWith(
-                                  color: tagFg,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
-                          ],
+                    Icon(tagIcon, size: 14, color: tagFg),
+                    if (tagCount != null) ...[
+                      const SizedBox(width: 2),
+                      Text(
+                        tagCount,
+                        style: CarbonText.label01.copyWith(
+                          color: tagFg,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -940,14 +897,13 @@ class _DeptDetailSheet extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                DeptNumberPlate(dept: dept),
+                const SizedBox(width: CarbonSpacing.s4),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${dept.number}. ${dept.ko}',
-                        style: CarbonText.heading03,
-                      ),
+                      Text(dept.ko, style: CarbonText.heading03),
                       const SizedBox(height: 2),
                       Text(dept.en, style: CarbonText.helperText01),
                     ],
@@ -967,14 +923,11 @@ class _DeptDetailSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: CarbonSpacing.s5),
-            Center(
-              child: Image.asset(
-                dept.image,
-                width: 260,
-                cacheWidth: 600,
-                fit: BoxFit.contain,
-              ),
-            ),
+            DeptDoubleRule(dept: dept),
+            const SizedBox(height: CarbonSpacing.s6),
+            Center(child: DeptEmblem(dept: dept)),
+            const SizedBox(height: CarbonSpacing.s6),
+            DeptEffectBar(dept: dept),
             const SizedBox(height: CarbonSpacing.s5),
             Wrap(
               spacing: CarbonSpacing.s2,

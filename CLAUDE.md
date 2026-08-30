@@ -32,12 +32,30 @@ flutter build web && flutter build apk --release
 ```
 
 - 사용자 확인용 설치는 항상 **릴리즈 APK** (디버그는 스크롤이 버벅임).
-- 웹 확인: `build/web`을 `python -m http.server`로 서빙.
+- 웹 확인: `build/web`을 `python -m http.server`로 서빙하되, **반드시 매번
+  새 포트를 사용할 것** — Flutter 서비스 워커가 같은 오리진에서 이전 빌드를
+  캐시로 서빙해 거짓 검증을 하게 된다 (실제 사고 이력 있음).
+- 타일 디자인 변경 시 골든 재생성:
+  `flutter test --update-goldens test/dept_tile_golden_test.dart`.
+  위젯 테스트에서 폰트 로드는 setUpAll에서 해야 한다 (testWidgets 본문은
+  FakeAsync 존이라 실제 파일 I/O가 완료되지 않아 데드락). 같은 이유로
+  골든에는 에셋 이미지가 비어 보인다 (레이아웃 검증용).
 
 ## 코드 구조
 
 - `lib/main.dart` — 앱/테마, 게임 준비 화면, 결과 화면(탭: 부서 타일 / 중립
-  디스크 / 1인 도우미), 요약 바, 부서 카드, 상세 시트, 디스크 목록 카드
+  디스크 / 1인 도우미), 요약 바, 상세 시트, 디스크 목록 카드. 결과 그리드는
+  타일 자체가 셀이다 (카드 껍데기 없음, 상태 배지만 오버레이)
+- `lib/dept_tile.dart` — 부서 타일 컴포넌트. 재사용 부품:
+  `DeptNumberPlate`(유형 컬러 플레이트) · `DeptDoubleRule`(이중 괘선) ·
+  `DeptEmblem`(중앙 이미지/엠블럼) · `DeptEffectBar`(효과 요약 바) ·
+  `deptTypeColor/Of`, `deptTypeIcon`. `DeptTile`은 이 부품들을 기준 폭 400px
+  시안 대비 **비례값**으로 조립 (FittedBox 축소 금지 — 사용자 확정).
+  상세 시트·도감도 같은 부품을 화면 폭에 맞게 직접 배치한다 (미니 타일 금지).
+  유형 4색: 인사 #846A6A / 경영 #8A7A4F / 건설 #6D7D62 / 연구개발 #7D6880 —
+  섹션 헤더 좌측 바도 이 색을 따른다.
+  현재 `DeptEmblem`은 원본 타일 이미지를 표시(하이브리드) — 아이콘 메달
+  조합 코드는 바로 아래 dead_code로 보존, 스토어용 전환 시 복원.
 - `lib/carbon.dart` — 디자인 토큰(CarbonColors/Text/Spacing)과 공용 위젯
   (CarbonButton, CarbonTag, CarbonContentSwitcher, TopBar, TopIconButton)
 - `lib/departments.dart` — 부서 16종 데이터, 인원별 제외 수
@@ -63,6 +81,9 @@ flutter build web && flutter build apk --release
 
 - `assets/departments/dept_01~16.png` — 규칙서 16–17쪽을 300dpi 클립 렌더링
   후 보더 플러드필로 배경 투명화. (임베디드 래스터는 탭이 잘려 있어 금지)
+  현재 `DeptTile`의 중앙 엠블럼 슬롯에 표시된다 (그리드에서는 20% 확대 +
+  위아래 여백). 저작권상 스토어 배포 불가 — 스토어행이면 아이콘 엠블럼으로
+  전환하고 이 폴더를 번들에서 제외할 것.
 - `assets/reficons/i01~47.png` — 규칙서 20쪽 아이콘 참조표. **원본 상대 크기
   유지**(공통 스케일), 캔버스 가로 180px 고정·세로는 실제 높이(행 높이 절약),
   180px 초과분만 축소. 순서: i09=활성 직원, i10=비활성 (스왑 이력 있음 주의).

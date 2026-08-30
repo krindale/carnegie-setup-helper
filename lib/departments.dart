@@ -31,6 +31,7 @@ class Department {
   /// Tiles 4, 8, 12, 16 have a different color and provide ongoing effects.
   final bool ongoing;
 
+  /// 규칙서 16–17쪽에서 추출한 원본 타일 이미지.
   String get image =>
       'assets/departments/dept_${number.toString().padLeft(2, '0')}.png';
 }

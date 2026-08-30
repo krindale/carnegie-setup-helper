@@ -1,0 +1,554 @@
+import 'package:flutter/material.dart';
+
+import 'carbon.dart';
+import 'departments.dart';
+
+// ---------------------------------------------------------------------------
+// 부서 타일 재창작 — 원본 아트워크 없이 부서 정보만으로 컴포넌트와 아이콘을
+// 조합해 그린 자체 디자인. 넘버 플레이트·이중 괘선·엠블럼·효과 바를 재사용
+// 컴포넌트로 분리해서, 그리드 타일뿐 아니라 상세 시트·도감도 같은 부품을
+// 화면 레이아웃에 직접 녹여 쓴다 (미니 타일을 이미지처럼 박지 않는다).
+// ---------------------------------------------------------------------------
+
+/// 유형별 식별 컬러 — 앱 팔레트(로즈토프)와 같은 채도·명도 대역의 4색.
+const _typeColors = <DeptType, Color>{
+  DeptType.hr: CarbonColors.interactive, // 로즈토프 #846A6A
+  DeptType.management: Color(0xFF8A7A4F), // 황동
+  DeptType.construction: Color(0xFF6D7D62), // 세이지
+  DeptType.rnd: Color(0xFF7D6880), // 플럼
+};
+
+/// 유형 표식 아이콘.
+const _typeIcons = <DeptType, IconData>{
+  DeptType.hr: Icons.people_outline,
+  DeptType.management: Icons.work_outline,
+  DeptType.construction: Icons.domain,
+  DeptType.rnd: Icons.science_outlined,
+};
+
+/// 부서별 엠블럼 (주 메달, 보조 링) 아이콘 매칭.
+const _emblems = <int, (IconData, IconData)>{
+  1: (Icons.school_outlined, Icons.people_alt_outlined), // 훈련 + 파트너십
+  2: (Icons.person_add_alt_1, Icons.badge_outlined), // 새 직원 + 명찰
+  3: (Icons.health_and_safety_outlined, Icons.workspace_premium_outlined),
+  4: (Icons.meeting_room_outlined, Icons.weekend_outlined), // 문 + 소파
+  5: (Icons.shopping_cart_outlined, Icons.inventory_2_outlined),
+  6: (Icons.storefront_outlined, Icons.paid_outlined), // 상점 + 달러
+  7: (Icons.local_shipping_outlined, Icons.inventory_2_outlined),
+  8: (Icons.apartment_outlined, Icons.vpn_key_outlined), // 건물 + 열쇠
+  9: (Icons.engineering_outlined, Icons.construction_outlined),
+  10: (Icons.construction_outlined, Icons.map_outlined), // 공구 + 지도
+  11: (Icons.link, Icons.inventory_2_outlined), // 사슬 + 큐브
+  12: (Icons.campaign_outlined, Icons.volunteer_activism_outlined),
+  13: (Icons.science_outlined, Icons.trending_up), // 플라스크 + 상승
+  14: (Icons.architecture, Icons.edit_outlined), // 컴퍼스 + 펜
+  15: (Icons.volunteer_activism_outlined, Icons.favorite_outline),
+  16: (Icons.cell_tower, Icons.bolt), // 송신탑 + 번개
+};
+
+Color deptTypeColorOf(DeptType type) => _typeColors[type]!;
+Color deptTypeColor(Department d) => deptTypeColorOf(d.type);
+IconData deptTypeIcon(Department d) => _typeIcons[d.type]!;
+
+/// 유형 컬러 넘버 플레이트.
+class DeptNumberPlate extends StatelessWidget {
+  const DeptNumberPlate({super.key, required this.dept, this.size = 44});
+
+  final Department dept;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: deptTypeColor(dept),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33353B3C),
+            offset: Offset(0, 2),
+            blurRadius: 3,
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '${dept.number}',
+        style: TextStyle(
+          fontFamily: 'SUIT',
+          fontSize: size * 0.5,
+          fontWeight: FontWeight.w800,
+          color: CarbonColors.textOnColor,
+        ),
+      ),
+    );
+  }
+}
+
+/// 증서풍 이중 괘선 (유형 컬러 + 흐린 선).
+class DeptDoubleRule extends StatelessWidget {
+  const DeptDoubleRule({super.key, required this.dept, this.scale = 1});
+
+  final Department dept;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(height: 1.5 * scale, color: deptTypeColor(dept)),
+        SizedBox(height: 2 * scale),
+        Container(height: 1 * scale, color: CarbonColors.borderSubtle),
+      ],
+    );
+  }
+}
+
+/// 부서 상징 엠블럼: 주 개념은 솔리드 메달, 보조 개념은 겹친 링으로 표현.
+class DeptEmblem extends StatelessWidget {
+  const DeptEmblem({super.key, required this.dept, this.scale = 1});
+
+  final Department dept;
+  final double scale;
+
+  double _s(double v) => v * scale;
+
+  @override
+  Widget build(BuildContext context) {
+    // 시험 버전: 아이콘 메달 조합 대신 규칙서 원본 타일 이미지를 표시한다.
+    // 아이콘 엠블럼으로 되돌리려면 아래 return을 지우면 된다.
+    return SizedBox(
+      width: _s(230),
+      height: _s(160),
+      child: Image.asset(dept.image, fit: BoxFit.contain),
+    );
+    // ignore: dead_code
+    final (mainIcon, subIcon) = _emblems[dept.number]!;
+    final color = deptTypeColor(dept);
+    return SizedBox(
+      width: _s(230),
+      height: _s(160),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // 뒤판: 옅은 대형 원.
+          Container(
+            width: _s(150),
+            height: _s(150),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withValues(alpha: 0.08),
+            ),
+          ),
+          // 주 메달: 솔리드 컬러 + 흰 아이콘.
+          Positioned(
+            left: _s(32),
+            child: Container(
+              width: _s(104),
+              height: _s(104),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color,
+                border: Border.all(
+                  color: CarbonColors.background,
+                  width: _s(3),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x40353B3C),
+                    offset: Offset(0, _s(3)),
+                    blurRadius: _s(6),
+                  ),
+                ],
+              ),
+              child: Icon(
+                mainIcon,
+                size: _s(48),
+                color: CarbonColors.textOnColor,
+              ),
+            ),
+          ),
+          // 보조 메달: 흰 바탕 링 + 컬러 아이콘, 주 메달에 겹침.
+          Positioned(
+            right: _s(34),
+            bottom: _s(18),
+            child: Container(
+              width: _s(78),
+              height: _s(78),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: CarbonColors.background,
+                border: Border.all(color: color, width: _s(2.5)),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0x33353B3C),
+                    offset: Offset(0, _s(2)),
+                    blurRadius: _s(4),
+                  ),
+                ],
+              ),
+              child: Icon(subIcon, size: _s(34), color: color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 효과 요약 바: 비용 → 보상. 모서리 리벳(철강 모티프), 지속 효과 배지.
+class DeptEffectBar extends StatelessWidget {
+  const DeptEffectBar({super.key, required this.dept, this.scale = 1});
+
+  final Department dept;
+  final double scale;
+
+  double _s(double v) => v * scale;
+
+  /// 부서별 효과 요약 행 (규칙서 16–17쪽 각 부서 효과의 압축 표기).
+  List<Widget> _items() {
+    return switch (dept.number) {
+      1 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$8', '받기'),
+        _divider(null),
+        _item(Icons.directions_walk, '×8', '이동'),
+      ],
+      2 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.add),
+        _item(Icons.person_add_alt_1, '×1', '로비'),
+        _divider(null),
+        _item(Icons.directions_walk, '×4', '이동'),
+      ],
+      3 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.star, '+1', '2명당'),
+      ],
+      4 => [
+        _item(Icons.inventory_2_outlined, '×2', '추가 지불'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.meeting_room_outlined, '택1', '로비'),
+      ],
+      5 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$8', '받기'),
+        _divider(null),
+        _item(Icons.inventory_2_outlined, '×3', '큐브'),
+      ],
+      6 => [
+        _item(Icons.inventory_2_outlined, '×1~3', '지불'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$6', '개당'),
+      ],
+      7 => [
+        _item(Icons.inventory_2_outlined, '×1~3', '지불'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$3', '개당'),
+        _divider(Icons.add),
+        _item(Icons.star, '+1', '개당'),
+      ],
+      8 => [
+        _item(Icons.grid_view, '+1', '새 부서'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.person, '×1', '이동'),
+      ],
+      9 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.inventory_2_outlined, '×1~2', '지불'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.location_city, '×1', '건설'),
+      ],
+      10 => [
+        _item(Icons.paid_outlined, '\$3', '지불'),
+        _divider(Icons.add),
+        _item(Icons.inventory_2_outlined, '×1~2', '지불'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.location_city, '×1', '건설'),
+      ],
+      11 => [
+        _item(Icons.paid_outlined, '\$1', '개당'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.inventory_2_outlined, '×1~3', '구입'),
+      ],
+      12 => [
+        _item(Icons.person, '×1', '활성'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.volunteer_activism_outlined, '\$3', '기부 기준'),
+      ],
+      13 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.science_outlined, '+7', '연구'),
+      ],
+      14 => [
+        _item(Icons.person, '×1', '활성당'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.science_outlined, '+4', '연구'),
+      ],
+      15 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.add),
+        _item(Icons.paid_outlined, '비용', '지불'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.favorite, '×1', '기부'),
+      ],
+      16 => [
+        _item(Icons.person, '×1', '활성'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.train, '-1', '운송 연구'),
+      ],
+      _ => const [],
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _items();
+    if (items.isEmpty) return const SizedBox.shrink();
+    final rivetGap = _s(7);
+    return Container(
+      height: _s(72),
+      decoration: const BoxDecoration(
+        color: CarbonColors.shell,
+        border: Border(top: BorderSide(color: Color(0x66FFFFFF), width: 0.5)),
+      ),
+      child: Stack(
+        children: [
+          Positioned(left: rivetGap, top: rivetGap, child: _rivet()),
+          Positioned(right: rivetGap, top: rivetGap, child: _rivet()),
+          Positioned(left: rivetGap, bottom: rivetGap, child: _rivet()),
+          Positioned(right: rivetGap, bottom: rivetGap, child: _rivet()),
+          Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: _s(24)),
+                child: Row(
+                  children: [
+                    if (dept.ongoing) ...[
+                      _ongoingBadge(),
+                      SizedBox(width: _s(12)),
+                    ],
+                    ...items,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 지속 효과 부서(4, 8, 12, 16) 표식.
+  Widget _ongoingBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: _s(6), vertical: _s(3)),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0x66FFFFFF)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.all_inclusive,
+            size: _s(13),
+            color: const Color(0xB3FFFFFF),
+          ),
+          SizedBox(width: _s(3)),
+          Text(
+            '지속',
+            style: TextStyle(
+              fontFamily: 'SUIT',
+              fontSize: _s(10),
+              fontWeight: FontWeight.w700,
+              color: const Color(0xB3FFFFFF),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _item(IconData icon, String value, String label) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: _s(20), color: CarbonColors.textOnColor),
+            SizedBox(width: _s(4)),
+            Text(
+              value,
+              style: TextStyle(
+                fontFamily: 'SUIT',
+                fontSize: _s(21),
+                fontWeight: FontWeight.w800,
+                color: CarbonColors.textOnColor,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: _s(1)),
+        Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'SUIT',
+            fontSize: _s(11),
+            fontWeight: FontWeight.w700,
+            color: const Color(0xB3FFFFFF),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 아이콘이 있으면 진행(→)·병기(+) 기호, 없으면 '또는' 구분자.
+  Widget _divider(IconData? icon) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: _s(12)),
+      child: icon != null
+          ? Icon(icon, size: _s(18), color: const Color(0x8AFFFFFF))
+          : Text(
+              '또는',
+              style: TextStyle(
+                fontFamily: 'SUIT',
+                fontSize: _s(11),
+                fontWeight: FontWeight.w700,
+                color: const Color(0x8AFFFFFF),
+              ),
+            ),
+    );
+  }
+
+  /// 효과 바 모서리의 리벳 점.
+  Widget _rivet() {
+    return Container(
+      width: _s(5),
+      height: _s(5),
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0x4DFFFFFF),
+      ),
+    );
+  }
+}
+
+/// 그리드용 부서 타일. 모든 치수는 기준 폭 400px 시안에 대한 비례값으로,
+/// 어느 크기에서든 시안과 같은 비율로 보인다.
+class DeptTile extends StatelessWidget {
+  const DeptTile({super.key, required this.dept});
+
+  final Department dept;
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 497 / 426,
+      child: LayoutBuilder(
+        builder: (context, constraints) =>
+            _TileBody(dept: dept, scale: constraints.maxWidth / 400),
+      ),
+    );
+  }
+}
+
+class _TileBody extends StatelessWidget {
+  const _TileBody({required this.dept, required this.scale});
+
+  final Department dept;
+  final double scale;
+
+  double _s(double v) => v * scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      // 흐린 보더 하나 + 은은한 그림자로 타일 경계를 잡는다.
+      decoration: BoxDecoration(
+        color: CarbonColors.background,
+        border: Border.all(color: CarbonColors.borderSubtle),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x26353B3C),
+            offset: Offset(0, _s(3)),
+            blurRadius: _s(8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _header(),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: _s(12)),
+            child: DeptDoubleRule(dept: dept, scale: scale),
+          ),
+          Expanded(
+            // 그리드 타일에서는 원본 타일 이미지를 20% 키우되, 위아래
+            // 여백을 확보하고 남는 공간에 맞춰 축소한다.
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: _s(10)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: DeptEmblem(dept: dept, scale: scale * 1.2),
+              ),
+            ),
+          ),
+          DeptEffectBar(dept: dept, scale: scale),
+        ],
+      ),
+    );
+  }
+
+  Widget _header() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(_s(12), _s(12), _s(12), _s(8)),
+      child: Row(
+        children: [
+          DeptNumberPlate(dept: dept, size: _s(44)),
+          SizedBox(width: _s(12)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  dept.ko,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'SUIT',
+                    fontSize: _s(20),
+                    height: 1.2,
+                    fontWeight: FontWeight.w800,
+                    color: CarbonColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: _s(2)),
+                Text(
+                  dept.en.toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'SUIT',
+                    fontSize: _s(10),
+                    letterSpacing: _s(1.6),
+                    fontWeight: FontWeight.w700,
+                    color: CarbonColors.textHelper,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: _s(8)),
+          Icon(deptTypeIcon(dept), size: _s(20), color: deptTypeColor(dept)),
+        ],
+      ),
+    );
+  }
+}

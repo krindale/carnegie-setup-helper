@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'carbon.dart';
 import 'departments.dart';
+import 'dept_tile.dart';
 
 // ---------------------------------------------------------------------------
 // Department catalog screen (부서 도감)
@@ -46,11 +47,12 @@ class DeptCatalogScreen extends StatelessWidget {
                             horizontal: CarbonSpacing.s4,
                             vertical: CarbonSpacing.s3,
                           ),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: CarbonColors.layer01,
                             border: Border(
+                              // 타일 넘버 플레이트와 같은 유형 컬러.
                               left: BorderSide(
-                                color: CarbonColors.interactive,
+                                color: deptTypeColorOf(type),
                                 width: 4,
                               ),
                             ),
@@ -104,53 +106,50 @@ class _CatalogRow extends StatelessWidget {
         border: Border.all(color: CarbonColors.borderSubtle),
       ),
       padding: const EdgeInsets.all(CarbonSpacing.s5),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final imageWidth = constraints.maxWidth * 0.56 > 240
-              ? 240.0
-              : constraints.maxWidth * 0.56;
-          // 부서 타이틀 → 부서 이미지 → 부서 설명 순서의 세로 배치.
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      // 플레이트+이름 → 괘선 → 엠블럼 → 효과 바 → 설명. 타일과 같은 부품을
+      // 화면 폭에 맞게 직접 배치한다.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${dept.number}. ${dept.ko}',
+              DeptNumberPlate(dept: dept, size: 40),
+              const SizedBox(width: CarbonSpacing.s4),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      dept.ko,
                       style: CarbonText.heading03.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  if (dept.ongoing)
-                    const Padding(
-                      padding: EdgeInsets.only(left: CarbonSpacing.s2),
-                      child: CarbonTag(
-                        text: '지속 효과',
-                        bg: CarbonColors.tagAccentBg,
-                        fg: CarbonColors.tagAccentText,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 2),
-              Text(dept.en, style: CarbonText.helperText01),
-              const SizedBox(height: CarbonSpacing.s4),
-              Center(
-                child: Image.asset(
-                  dept.image,
-                  width: imageWidth,
-                  cacheWidth: 500,
-                  fit: BoxFit.contain,
+                    const SizedBox(height: 2),
+                    Text(dept.en, style: CarbonText.helperText01),
+                  ],
                 ),
               ),
-              const SizedBox(height: CarbonSpacing.s5),
-              Text(dept.rule, style: CarbonText.body01.copyWith(height: 1.6)),
+              if (dept.ongoing)
+                const Padding(
+                  padding: EdgeInsets.only(left: CarbonSpacing.s2),
+                  child: CarbonTag(
+                    text: '지속 효과',
+                    bg: CarbonColors.tagAccentBg,
+                    fg: CarbonColors.tagAccentText,
+                  ),
+                ),
             ],
-          );
-        },
+          ),
+          const SizedBox(height: CarbonSpacing.s4),
+          DeptDoubleRule(dept: dept),
+          const SizedBox(height: CarbonSpacing.s5),
+          Center(child: DeptEmblem(dept: dept, scale: 0.85)),
+          const SizedBox(height: CarbonSpacing.s5),
+          DeptEffectBar(dept: dept, scale: 0.9),
+          const SizedBox(height: CarbonSpacing.s5),
+          Text(dept.rule, style: CarbonText.body01.copyWith(height: 1.6)),
+        ],
       ),
     );
   }
