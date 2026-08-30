@@ -5,6 +5,7 @@ import 'carbon.dart';
 import 'departments.dart';
 import 'dept_tile.dart';
 import 'reference.dart';
+import 'rules.dart';
 import 'setup9.dart';
 
 void main() {
@@ -168,6 +169,15 @@ class _SetupScreenState extends State<SetupScreen> {
               right: 0,
               child: Row(
                 children: [
+                  TopIconButton(
+                    icon: Icons.article_outlined,
+                    tooltip: '게임 룰 요약',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RulesSummaryScreen(),
+                      ),
+                    ),
+                  ),
                   TopIconButton(
                     icon: Icons.menu_book_outlined,
                     tooltip: '부서 도감',

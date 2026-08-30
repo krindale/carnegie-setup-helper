@@ -5,6 +5,7 @@ import 'package:carnegie_departments/departments.dart';
 import 'package:carnegie_departments/dept_tile.dart';
 import 'package:carnegie_departments/main.dart';
 import 'package:carnegie_departments/reference.dart';
+import 'package:carnegie_departments/rules.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,6 +103,32 @@ void main() {
   testWidgets('아이콘 참조표 화면이 오버플로 없이 렌더링된다', (tester) async {
     await pumpPhone(tester, const IconReferenceScreen());
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('게임 룰 요약 화면이 오버플로 없이 렌더링된다', (tester) async {
+    await pumpPhone(tester, const RulesSummaryScreen());
+    final scrollable = find.byType(Scrollable).first;
+    for (var i = 0; i < 10; i++) {
+      await tester.drag(scrollable, const Offset(0, -600));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    // 끝까지 스크롤했으므로 마지막 섹션이 보여야 한다.
+    expect(find.text('게임 종료 승점'), findsOneWidget);
+  });
+
+  testWidgets('게임 룰 요약: 체크리스트 버튼 → 초기 세팅 시트가 열린다', (tester) async {
+    await pumpPhone(tester, const RulesSummaryScreen());
+    await tester.tap(find.byIcon(Icons.checklist).first);
+    await tester.pumpAndSettle();
+    expect(find.text('초기 세팅'), findsOneWidget);
+  });
+
+  testWidgets('부서 도감: info 버튼 → 부서 조직 방법 시트가 열린다', (tester) async {
+    await pumpPhone(tester, const DeptCatalogScreen());
+    await tester.tap(find.byIcon(Icons.info_outline));
+    await tester.pumpAndSettle();
+    expect(find.text('부서 조직 방법'), findsOneWidget);
   });
 
   testWidgets('좁은 폭(320px)에서도 컴팩트 타일이 오버플로 없이 렌더링된다', (tester) async {
