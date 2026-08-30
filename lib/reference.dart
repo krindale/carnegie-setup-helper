@@ -47,11 +47,12 @@ class DeptCatalogScreen extends StatelessWidget {
                             horizontal: CarbonSpacing.s4,
                             vertical: CarbonSpacing.s3,
                           ),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: CarbonColors.layer01,
                             border: Border(
+                              // 타일 넘버 플레이트와 같은 유형 컬러.
                               left: BorderSide(
-                                color: CarbonColors.interactive,
+                                color: deptTypeColorOf(type),
                                 width: 4,
                               ),
                             ),

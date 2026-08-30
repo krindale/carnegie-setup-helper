@@ -46,7 +46,8 @@ const _emblems = <int, (IconData, IconData)>{
   16: (Icons.cell_tower, Icons.bolt), // 송신탑 + 번개
 };
 
-Color deptTypeColor(Department d) => _typeColors[d.type]!;
+Color deptTypeColorOf(DeptType type) => _typeColors[type]!;
+Color deptTypeColor(Department d) => deptTypeColorOf(d.type);
 IconData deptTypeIcon(Department d) => _typeIcons[d.type]!;
 
 /// 유형 컬러 넘버 플레이트.
@@ -115,6 +116,14 @@ class DeptEmblem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 시험 버전: 아이콘 메달 조합 대신 규칙서 원본 타일 이미지를 표시한다.
+    // 아이콘 엠블럼으로 되돌리려면 아래 return을 지우면 된다.
+    return SizedBox(
+      width: _s(230),
+      height: _s(160),
+      child: Image.asset(dept.image, fit: BoxFit.contain),
+    );
+    // ignore: dead_code
     final (mainIcon, subIcon) = _emblems[dept.number]!;
     final color = deptTypeColor(dept);
     return SizedBox(
@@ -481,8 +490,14 @@ class _TileBody extends StatelessWidget {
             child: DeptDoubleRule(dept: dept, scale: scale),
           ),
           Expanded(
-            child: Center(
-              child: DeptEmblem(dept: dept, scale: scale),
+            // 그리드 타일에서는 원본 타일 이미지를 20% 키우되, 위아래
+            // 여백을 확보하고 남는 공간에 맞춰 축소한다.
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: _s(10)),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: DeptEmblem(dept: dept, scale: scale * 1.2),
+              ),
             ),
           ),
           DeptEffectBar(dept: dept, scale: scale),

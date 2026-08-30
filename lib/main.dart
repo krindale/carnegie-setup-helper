@@ -434,13 +434,11 @@ class _ResultScreenState extends State<ResultScreen> {
                     horizontal: CarbonSpacing.s4,
                     vertical: CarbonSpacing.s3,
                   ),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: CarbonColors.layer01,
                     border: Border(
-                      left: BorderSide(
-                        color: CarbonColors.interactive,
-                        width: 4,
-                      ),
+                      // 타일 넘버 플레이트와 같은 유형 컬러.
+                      left: BorderSide(color: deptTypeColorOf(type), width: 4),
                     ),
                   ),
                   child: Row(
@@ -799,14 +797,14 @@ class _DeptCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (tagIcon, tagCount, tagBg, tagFg) = switch (state) {
       TileState.removeBoth => (
-        Icons.close,
-        '2',
+        Icons.delete,
+        '×2',
         const Color(0x99DA1E28),
         CarbonColors.textOnColor,
       ),
       TileState.removeOne => (
-        Icons.close,
-        '1',
+        Icons.delete,
+        '×1',
         const Color(0x99F1C21B),
         CarbonColors.textOnColor,
       ),
