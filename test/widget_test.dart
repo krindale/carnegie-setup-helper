@@ -9,8 +9,7 @@ void main() {
   test('draw removes the correct number of tiles per player count', () {
     for (final entry in removalByPlayerCount.entries) {
       final result = draw(entry.key, Random(42));
-      final removed =
-          result.removed.values.fold<int>(0, (sum, c) => sum + c);
+      final removed = result.removed.values.fold<int>(0, (sum, c) => sum + c);
       expect(removed, entry.value);
       expect(result.removed.values.every((c) => c >= 1 && c <= 2), isTrue);
       expect(result.totalKept, 32 - entry.value);

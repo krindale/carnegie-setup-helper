@@ -30,9 +30,6 @@ class Department {
 
   /// Tiles 4, 8, 12, 16 have a different color and provide ongoing effects.
   final bool ongoing;
-
-  String get image =>
-      'assets/departments/dept_${number.toString().padLeft(2, '0')}.png';
 }
 
 const departments = <Department>[
