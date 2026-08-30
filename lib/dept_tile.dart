@@ -46,6 +46,11 @@ const _emblems = <int, (IconData, IconData)>{
   16: (Icons.cell_tower, Icons.bolt), // 송신탑 + 번개
 };
 
+/// 그리드 타일의 가로:세로 비율. 헤더 확대(+15%), 이미지 확대(+15%),
+/// 효과 바 확대(1.3배)를 여백 축소 없이 담기 위해 원본(497:426)보다
+/// 세로를 늘렸다.
+const deptTileAspect = 400 / 399;
+
 Color deptTypeColorOf(DeptType type) => _typeColors[type]!;
 Color deptTypeColor(Department d) => deptTypeColorOf(d.type);
 IconData deptTypeIcon(Department d) => _typeIcons[d.type]!;
@@ -449,7 +454,7 @@ class DeptTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 497 / 426,
+      aspectRatio: deptTileAspect,
       child: LayoutBuilder(
         builder: (context, constraints) =>
             _TileBody(dept: dept, scale: constraints.maxWidth / 400),
@@ -490,17 +495,17 @@ class _TileBody extends StatelessWidget {
             child: DeptDoubleRule(dept: dept, scale: scale),
           ),
           Expanded(
-            // 그리드 타일에서는 원본 타일 이미지를 20% 키우되, 위아래
-            // 여백을 확보하고 남는 공간에 맞춰 축소한다.
+            // 타일 세로 비율을 늘려 확보한 공간만큼 이미지를 크게 보여준다.
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: _s(10)),
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: DeptEmblem(dept: dept, scale: scale * 1.2),
+                child: DeptEmblem(dept: dept, scale: scale * 1.31),
               ),
             ),
           ),
-          DeptEffectBar(dept: dept, scale: scale),
+          // 그리드에서는 효과 바를 30% 키워 가독성을 높인다.
+          DeptEffectBar(dept: dept, scale: scale * 1.3),
         ],
       ),
     );
@@ -523,30 +528,40 @@ class _TileBody extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'SUIT',
-                    fontSize: _s(20),
+                    // 하단 효과 바 아이콘 크기(20×1.3=26)와 동일하게 맞춘다.
+                    fontSize: _s(26),
                     height: 1.2,
                     fontWeight: FontWeight.w800,
                     color: CarbonColors.textPrimary,
                   ),
                 ),
                 SizedBox(height: _s(2)),
-                Text(
-                  dept.en.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'SUIT',
-                    fontSize: _s(10),
-                    letterSpacing: _s(1.6),
-                    fontWeight: FontWeight.w700,
-                    color: CarbonColors.textHelper,
+                // 영문 부제는 폭에 맞게 자동 축소해 말줄임 없이 표시한다.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    dept.en.toUpperCase(),
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontFamily: 'SUIT',
+                      fontSize: _s(11),
+                      letterSpacing: _s(1.6),
+                      fontWeight: FontWeight.w700,
+                      color: CarbonColors.textHelper,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           SizedBox(width: _s(8)),
-          Icon(deptTypeIcon(dept), size: _s(20), color: deptTypeColor(dept)),
+          // 유형 아이콘: 기준 26, 폰 그리드에서도 최소 16을 보장한다.
+          Icon(
+            deptTypeIcon(dept),
+            size: _s(26) < 16 ? 16 : _s(26),
+            color: deptTypeColor(dept),
+          ),
         ],
       ),
     );

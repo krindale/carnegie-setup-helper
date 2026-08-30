@@ -19,11 +19,9 @@ void main() {
   testWidgets('setup screen renders and can draw', (tester) async {
     await tester.pumpWidget(const CarnegieApp());
     expect(find.text('게임 준비'), findsOneWidget);
-    expect(find.text('부서 타일 뽑기'), findsOneWidget);
 
+    // 인원 카드를 누르면 바로 결과 화면으로 이동한다.
     await tester.tap(find.text('1-2인'));
-    await tester.pump();
-    await tester.tap(find.text('부서 타일 뽑기'));
     await tester.pumpAndSettle();
     expect(find.text('상자에 되돌릴 타일'), findsWidgets);
     expect(find.text('테이블에 놓을 타일'), findsWidgets);

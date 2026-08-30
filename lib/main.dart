@@ -84,15 +84,8 @@ extension on DrawResult {
 // Setup screen
 // ---------------------------------------------------------------------------
 
-class SetupScreen extends StatefulWidget {
+class SetupScreen extends StatelessWidget {
   const SetupScreen({super.key});
-
-  @override
-  State<SetupScreen> createState() => _SetupScreenState();
-}
-
-class _SetupScreenState extends State<SetupScreen> {
-  int? _players;
 
   @override
   Widget build(BuildContext context) {
@@ -106,58 +99,65 @@ class _SetupScreenState extends State<SetupScreen> {
                 child: Column(
                   children: [
                     Expanded(
-                      child: ListView(
-                        padding: const EdgeInsets.all(CarbonSpacing.s5),
-                        children: [
-                          const SizedBox(height: CarbonSpacing.s7),
-                          Text('게임 준비', style: CarbonText.heading05),
-                          const SizedBox(height: CarbonSpacing.s3),
-                          Text(
-                            '인원수만 선택하면 부서 타일 제외와 중립 디스크 배치가 '
-                            '한 번에 준비됩니다.',
-                            style: CarbonText.body02.copyWith(
-                              color: CarbonColors.textSecondary,
+                      // 인원 카드 3장이 남는 세로 공간을 균등하게 나눠 화면을
+                      // 채운다. 공간이 부족하면 스크롤 목록으로 전환된다.
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final header = <Widget>[
+                            const SizedBox(height: CarbonSpacing.s7),
+                            Text('게임 준비', style: CarbonText.heading05),
+                            const SizedBox(height: CarbonSpacing.s3),
+                            Text(
+                              '인원수만 선택하면 부서 타일 제외와 중립 디스크 '
+                              '배치가 한 번에 준비됩니다.',
+                              style: CarbonText.body02.copyWith(
+                                color: CarbonColors.textSecondary,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: CarbonSpacing.s7),
-                          Text('플레이어 수', style: CarbonText.label01),
-                          const SizedBox(height: CarbonSpacing.s3),
-                          Column(
-                            children: [
-                              for (final p in const [2, 3, 4]) ...[
-                                _PlayerTile(
-                                  players: p,
-                                  selected: _players == p,
-                                  onTap: () => setState(() => _players = p),
-                                ),
-                                const SizedBox(height: CarbonSpacing.s3),
+                            const SizedBox(height: CarbonSpacing.s7),
+                            Text('플레이어 수', style: CarbonText.label01),
+                            const SizedBox(height: CarbonSpacing.s3),
+                          ];
+                          Widget tile(int p) => _PlayerTile(
+                            players: p,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ResultScreen(result: draw(p)),
+                              ),
+                            ),
+                          );
+                          if (constraints.maxHeight < 620) {
+                            return SingleChildScrollView(
+                              padding: const EdgeInsets.all(CarbonSpacing.s5),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ...header,
+                                  for (final p in const [2, 3, 4]) ...[
+                                    tile(p),
+                                    if (p != 4)
+                                      const SizedBox(height: CarbonSpacing.s3),
+                                  ],
+                                ],
+                              ),
+                            );
+                          }
+                          // 카드:간격 = 170:15 — 간격을 이전(85:15)의 절반
+                          // 비율로 줄이고, 남는 공간은 카드가 가져간다.
+                          return Padding(
+                            padding: const EdgeInsets.all(CarbonSpacing.s5),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ...header,
+                                for (final p in const [2, 3, 4]) ...[
+                                  Expanded(flex: 170, child: tile(p)),
+                                  const Spacer(flex: 15),
+                                ],
                               ],
-                            ],
-                          ),
-                          const SizedBox(height: CarbonSpacing.s7),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        CarbonSpacing.s5,
-                        0,
-                        CarbonSpacing.s5,
-                        CarbonSpacing.s5,
-                      ),
-                      child: CarbonButton(
-                        label: '부서 타일 뽑기',
-                        icon: Icons.shuffle,
-                        onPressed: _players == null
-                            ? null
-                            : () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        ResultScreen(result: draw(_players!)),
-                                  ),
-                                );
-                              },
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -207,14 +207,11 @@ class _SetupScreenState extends State<SetupScreen> {
 }
 
 class _PlayerTile extends StatelessWidget {
-  const _PlayerTile({
-    required this.players,
-    required this.selected,
-    required this.onTap,
-  });
+  const _PlayerTile({required this.players, required this.onTap});
 
   final int players;
-  final bool selected;
+
+  /// 카드를 누르면 바로 뽑기 결과 화면으로 이동한다 (별도 확정 버튼 없음).
   final VoidCallback onTap;
 
   @override
@@ -222,14 +219,9 @@ class _PlayerTile extends StatelessWidget {
     final removed = removalByPlayerCount[players]!;
     final kept = 32 - removed;
     return Material(
-      color: selected ? CarbonColors.interactiveTint : CarbonColors.background,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(
-          color: selected
-              ? CarbonColors.interactive
-              : CarbonColors.borderSubtle,
-          width: selected ? 2 : 1,
-        ),
+      color: CarbonColors.background,
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(color: CarbonColors.borderSubtle),
       ),
       child: InkWell(
         onTap: onTap,
@@ -237,6 +229,8 @@ class _PlayerTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(CarbonSpacing.s5),
           child: Column(
+            // 카드가 세로로 늘어났을 때 내용을 세로 중앙에 둔다.
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -251,20 +245,14 @@ class _PlayerTile extends StatelessWidget {
                     child: Text(
                       playerLabel(players),
                       style: CarbonText.heading03.copyWith(
-                        fontWeight: selected
-                            ? FontWeight.w700
-                            : FontWeight.w500,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                  Icon(
-                    selected
-                        ? Icons.check_circle
-                        : Icons.radio_button_unchecked,
+                  const Icon(
+                    Icons.arrow_forward,
                     size: 20,
-                    color: selected
-                        ? CarbonColors.interactive
-                        : CarbonColors.borderStrong,
+                    color: CarbonColors.interactive,
                   ),
                 ],
               ),
@@ -478,11 +466,11 @@ class _ResultScreenState extends State<ResultScreen> {
       ),
       sliver: SliverLayoutBuilder(
         builder: (context, constraints) {
-          // 셀 = 타일 자체(497:426). 타일이 곧 카드다.
+          // 셀 = 타일 자체. 타일이 곧 카드다.
           final width = constraints.crossAxisExtent;
           final cols = (width / 240).ceil().clamp(1, 6);
           final colWidth = (width - (cols - 1) * CarbonSpacing.s4) / cols;
-          final extent = colWidth / (497 / 426);
+          final extent = colWidth / deptTileAspect;
           return SliverGrid.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: cols,
@@ -837,9 +825,9 @@ class _DeptCard extends StatelessWidget {
               child: InkWell(onTap: onTap, hoverColor: const Color(0x14353B3C)),
             ),
           ),
-          // 효과 바 높이(기준 400px 시안의 72px)에 비례해 그 위에 놓는다.
+          // 효과 바 높이(기준 72px × 그리드 확대 1.3)에 비례해 그 위에 놓는다.
           Positioned(
-            bottom: constraints.maxWidth * 72 / 400 + CarbonSpacing.s3,
+            bottom: constraints.maxWidth * 72 * 1.3 / 400 + CarbonSpacing.s3,
             right: CarbonSpacing.s3,
             child: IgnorePointer(
               child: Container(

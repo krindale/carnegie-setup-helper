@@ -144,7 +144,7 @@ void main() {
         home: Scaffold(
           body: GridView.count(
             crossAxisCount: 2,
-            childAspectRatio: 497 / 426,
+            childAspectRatio: deptTileAspect,
             children: [for (final d in departments) DeptTile(dept: d)],
           ),
         ),
