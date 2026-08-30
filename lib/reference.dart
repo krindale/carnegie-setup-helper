@@ -350,6 +350,11 @@ const _refSections = <_RefSection>[
   ]),
 ];
 
+// 참조표 강조색 — 규칙서 20쪽의 구조(오버라인·이중 밑줄·잔점선)는 따르되
+// 색은 앱 팔레트로 통일 (사용자 확정).
+const _refAccent = CarbonColors.interactive;
+const _refDot = CarbonColors.borderStrong;
+
 class IconReferenceScreen extends StatelessWidget {
   const IconReferenceScreen({super.key});
 
@@ -372,56 +377,36 @@ class IconReferenceScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.all(CarbonSpacing.s5),
                     children: [
-                      Text('아이콘 참조표', style: CarbonText.heading05),
+                      // 규칙서 20쪽의 표제 구조: 제목 + 이중 밑줄.
+                      Text(
+                        '아이콘 참조표',
+                        style: CarbonText.heading05.copyWith(color: _refAccent),
+                      ),
+                      const SizedBox(height: CarbonSpacing.s3),
+                      Container(height: 1.4, color: _refAccent),
+                      const SizedBox(height: 2.5),
+                      Container(height: 1.4, color: _refAccent),
                       const SizedBox(height: CarbonSpacing.s5),
-                      LayoutBuilder(
-                        builder: (context, constraints) {
-                          final twoCols = constraints.maxWidth >= 640;
-                          if (!twoCols) {
-                            return Column(
-                              children: [
-                                for (final s in _refSections)
-                                  _RefSectionCard(section: s),
-                              ],
-                            );
-                          }
-                          // Masonry: fill the shorter of two columns.
-                          final left = <_RefSection>[];
-                          final right = <_RefSection>[];
-                          var lh = 0.0, rh = 0.0;
-                          for (final s in _refSections) {
-                            final h = 56.0 + s.items.length * 64.0;
-                            if (lh <= rh) {
-                              left.add(s);
-                              lh += h;
-                            } else {
-                              right.add(s);
-                              rh += h;
-                            }
-                          }
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    for (final s in left)
-                                      _RefSectionCard(section: s),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: CarbonSpacing.s5),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    for (final s in right)
-                                      _RefSectionCard(section: s),
-                                  ],
-                                ),
-                              ),
+                      // 열 묶음 순서는 규칙서 그대로, 항목 사이 선 없음,
+                      // 열 사이 잔점선. 새 단은 오버라인으로 시작한다.
+                      Container(
+                        decoration: BoxDecoration(
+                          color: CarbonColors.background,
+                          border: Border.all(color: CarbonColors.borderSubtle),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: CarbonSpacing.s3,
+                          vertical: CarbonSpacing.s5,
+                        ),
+                        child: Column(
+                          children: [
+                            for (final (i, row) in _refRows.indexed) ...[
+                              if (i > 0)
+                                const SizedBox(height: CarbonSpacing.s6),
+                              _RefPairRow(left: row.$1, right: row.$2),
                             ],
-                          );
-                        },
+                          ],
+                        ),
                       ),
                       const SizedBox(height: CarbonSpacing.s7),
                     ],
@@ -436,74 +421,120 @@ class IconReferenceScreen extends StatelessWidget {
   }
 }
 
-class _RefSectionCard extends StatelessWidget {
-  const _RefSectionCard({required this.section});
+/// 규칙서 20쪽의 열 묶음 순서 그대로 두 열씩 짝지어 배치한다.
+final _refRows = <(List<_RefSection>, List<_RefSection>)>[
+  ([_refSections[0]], [_refSections[1]]),
+  ([_refSections[2]], [_refSections[3]]),
+  ([_refSections[4], _refSections[5]], [_refSections[6], _refSections[7]]),
+  ([_refSections[8], _refSections[9]], [_refSections[10], _refSections[11]]),
+];
 
-  final _RefSection section;
+/// 두 열 스트립 + 가운데 점선. (IntrinsicHeight는 이미지 고유 높이를 열 폭
+/// 기준으로 과대 계산하므로 점선은 Stack 위에 그린다.)
+class _RefPairRow extends StatelessWidget {
+  const _RefPairRow({required this.left, required this.right});
+
+  final List<_RefSection> left;
+  final List<_RefSection> right;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: CarbonSpacing.s5),
-      decoration: BoxDecoration(
-        color: CarbonColors.background,
-        border: Border.all(color: CarbonColors.borderSubtle),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Stack(
+      children: [
+        Positioned.fill(child: CustomPaint(painter: _VDashPainter())),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _RefStrip(sections: left)),
+            const SizedBox(width: CarbonSpacing.s4),
+            Expanded(child: _RefStrip(sections: right)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// 세로 스트립: 제목(밑줄) 아래로 아이콘·설명을 촘촘히 쌓는다.
+/// 규칙서처럼 항목 사이에 구분선을 두지 않는다.
+class _RefStrip extends StatelessWidget {
+  const _RefStrip({required this.sections});
+
+  final List<_RefSection> sections;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, s) in sections.indexed) ...[
+          // 규칙서의 열 머리: 굵은 오버라인 + 진한 제목.
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              CarbonSpacing.s5,
-              CarbonSpacing.s5,
-              CarbonSpacing.s5,
-              6,
+            padding: EdgeInsets.fromLTRB(
+              CarbonSpacing.s3,
+              i == 0 ? 0 : CarbonSpacing.s6,
+              CarbonSpacing.s3,
+              CarbonSpacing.s2,
             ),
-            child: Text(
-              section.title,
-              style: CarbonText.heading02.copyWith(fontWeight: FontWeight.w800),
+            child: Column(
+              children: [
+                Container(height: 3.5, color: _refAccent),
+                const SizedBox(height: CarbonSpacing.s3),
+                Text(
+                  s.title,
+                  textAlign: TextAlign.center,
+                  style: CarbonText.heading01,
+                ),
+              ],
             ),
           ),
-          for (final (i, item) in section.items.indexed) ...[
-            if (i > 0)
-              const Padding(
-                padding: EdgeInsets.only(left: 107),
-                child: Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFE4E6E7),
-                ),
-              ),
+          for (final item in s.items)
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                CarbonSpacing.s5,
-                10,
-                CarbonSpacing.s5,
-                i == section.items.length - 1 ? CarbonSpacing.s5 : 10,
+              padding: const EdgeInsets.fromLTRB(
+                CarbonSpacing.s3,
+                CarbonSpacing.s3,
+                CarbonSpacing.s3,
+                CarbonSpacing.s2,
               ),
-              child: Row(
+              child: Column(
                 children: [
                   SizedBox(
-                    width: 75,
+                    width: 60,
                     child: Image.asset(
                       'assets/reficons/i${item.icon.toString().padLeft(2, '0')}.png',
-                      cacheWidth: 225,
+                      cacheWidth: 180,
                       fit: BoxFit.fitWidth,
                     ),
                   ),
-                  const SizedBox(width: CarbonSpacing.s5),
-                  Expanded(
-                    child: Text(
-                      item.label,
-                      style: CarbonText.body02.copyWith(height: 1.45),
+                  const SizedBox(height: CarbonSpacing.s2),
+                  Text(
+                    item.label,
+                    textAlign: TextAlign.center,
+                    style: CarbonText.label01.copyWith(
+                      color: CarbonColors.textPrimary,
+                      height: 1.35,
                     ),
                   ),
                 ],
               ),
             ),
-          ],
         ],
-      ),
+      ],
     );
   }
+}
+
+/// 규칙서의 열 구분 잔점선 (세로, 가운데).
+class _VDashPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = _refDot;
+    final x = size.width / 2;
+    for (var y = 2.0; y < size.height; y += 6) {
+      canvas.drawCircle(Offset(x, y), 0.9, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
