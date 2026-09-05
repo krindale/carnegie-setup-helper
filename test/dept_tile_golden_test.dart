@@ -117,4 +117,37 @@ void main() {
       matchesGoldenFile('goldens/dept_tile_all.png'),
     );
   });
+
+  testWidgets('확장 16종 전체 시트 골든', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    await tester.binding.setSurfaceSize(const Size(1460, 1270));
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.binding.setSurfaceSize(null);
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: CarbonColors.pageBackground,
+          body: Center(
+            child: Wrap(
+              spacing: 14,
+              runSpacing: 14,
+              children: [
+                for (final d in expansionDepartments)
+                  SizedBox(width: 340, child: DeptTile(dept: d)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await expectLater(
+      find.byType(Wrap),
+      matchesGoldenFile('goldens/dept_tile_expansion_all.png'),
+    );
+  });
 }

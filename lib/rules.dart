@@ -372,10 +372,14 @@ class _SectionHeader extends StatelessWidget {
         horizontal: CarbonSpacing.s4,
         vertical: CarbonSpacing.s3,
       ),
+      // 흰색 카드 헤더(컬러 바 + 옅은 보더) — 사용자 확정.
       decoration: const BoxDecoration(
-        color: CarbonColors.layer01,
+        color: CarbonColors.background,
         border: Border(
           left: BorderSide(color: CarbonColors.interactive, width: 4),
+          top: BorderSide(color: Color(0xFFE4E6E7)),
+          right: BorderSide(color: Color(0xFFE4E6E7)),
+          bottom: BorderSide(color: Color(0xFFE4E6E7)),
         ),
       ),
       child: Row(

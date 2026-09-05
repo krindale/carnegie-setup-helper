@@ -44,6 +44,22 @@ const _emblems = <int, (IconData, IconData)>{
   14: (Icons.architecture, Icons.edit_outlined), // 컴퍼스 + 펜
   15: (Icons.volunteer_activism_outlined, Icons.favorite_outline),
   16: (Icons.cell_tower, Icons.bolt), // 송신탑 + 번개
+  17: (Icons.badge_outlined, Icons.swap_horiz), // 명찰 + 재배치
+  18: (Icons.handshake_outlined, Icons.map_outlined), // 파트너 + 지역
+  19: (Icons.forum_outlined, Icons.north_east), // 대화 + 대각 이동
+  20: (Icons.park_outlined, Icons.grid_view), // 녹지 + 빈칸
+  21: (Icons.calculate_outlined, Icons.paid_outlined), // 회계 + 달러
+  22: (Icons.sell_outlined, Icons.map_outlined), // 브랜드 + 지역
+  23: (Icons.request_quote_outlined, Icons.star_outline), // 급여 + 승점
+  24: (Icons.campaign_outlined, Icons.map_outlined), // 홍보 + 지역
+  25: (Icons.precision_manufacturing_outlined, Icons.inventory_2_outlined),
+  26: (Icons.home_repair_service_outlined, Icons.map_outlined),
+  27: (Icons.account_balance_outlined, Icons.location_city), // 로비 + 건설
+  28: (Icons.local_post_office_outlined, Icons.link), // 우체국 + 연결
+  29: (Icons.hub_outlined, Icons.science_outlined), // 조정 + 연구
+  30: (Icons.share_outlined, Icons.map_outlined), // 공유 + 지역
+  31: (Icons.inventory_outlined, Icons.train), // 기록 + 운송
+  32: (Icons.local_library_outlined, Icons.public), // 도서관 + 네트워크
 };
 
 /// 그리드 타일의 가로:세로 비율. 헤더 확대(+15%), 이미지 확대(+15%),
@@ -308,6 +324,95 @@ class DeptEffectBar extends StatelessWidget {
         _divider(Icons.arrow_forward),
         _item(Icons.train, '-1', '운송 연구'),
       ],
+      // 확장 룰북 2–3쪽 신규 부서 17~32.
+      17 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.directions_walk, '×1', '인사당'),
+      ],
+      18 => [
+        _item(Icons.map_outlined, '택1', '지역'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$2', '개당'),
+        _divider(null),
+        _item(Icons.directions_walk, '×2', '개당'),
+      ],
+      19 => [
+        _item(Icons.person, '×1', '활성'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.north_east, '대각', '이동'),
+      ],
+      20 => [
+        _item(Icons.grid_view, '×1', '빈칸당'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.star, '+2', '승점'),
+      ],
+      21 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$3', '경영당'),
+      ],
+      22 => [
+        _item(Icons.map_outlined, '택1', '지역'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$2', '개당'),
+        _divider(null),
+        _item(Icons.inventory_2_outlined, '×1', '개당'),
+      ],
+      23 => [
+        _item(Icons.paid_outlined, '+\$2', '+1점'),
+        _divider(null),
+        _item(Icons.paid_outlined, '\$1', '-1점'),
+      ],
+      24 => [
+        _item(Icons.map_outlined, '택1', '지역'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.star, '+2', '개당'),
+      ],
+      25 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.inventory_2_outlined, '×1', '건설당'),
+      ],
+      26 => [
+        _item(Icons.map_outlined, '택1', '지역'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$2', '개당'),
+        _divider(null),
+        _item(Icons.star, '+1', '개당'),
+      ],
+      27 => [
+        _item(Icons.location_city, '자유', '건설'),
+        _divider(Icons.add),
+        _item(Icons.star, '+1', '일치 시'),
+      ],
+      28 => [
+        _item(Icons.link, '+1', '연결'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.star, '+9', '6점 시'),
+      ],
+      29 => [
+        _item(Icons.person, '×1', '파견'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.science_outlined, '+2', '연구당'),
+      ],
+      30 => [
+        _item(Icons.map_outlined, '택1', '지역'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.paid_outlined, '\$2', '개당'),
+        _divider(null),
+        _item(Icons.science_outlined, '+2', '개당'),
+      ],
+      31 => [
+        _item(Icons.train, '택1', '수입 단계'),
+        _divider(null),
+        _item(Icons.flag_outlined, '가능', '끝칸 진입'),
+      ],
+      32 => [
+        _item(Icons.map_outlined, '최소', '지역'),
+        _divider(Icons.arrow_forward),
+        _item(Icons.star, '+4', '개당'),
+      ],
       _ => const [],
     };
   }
@@ -340,6 +445,10 @@ class DeptEffectBar extends StatelessWidget {
                       _ongoingBadge(),
                       SizedBox(width: _s(12)),
                     ],
+                    if (dept.endgame) ...[
+                      _endgameBadge(),
+                      SizedBox(width: _s(12)),
+                    ],
                     ...items,
                   ],
                 ),
@@ -368,6 +477,35 @@ class DeptEffectBar extends StatelessWidget {
           SizedBox(width: _s(3)),
           Text(
             '지속',
+            style: TextStyle(
+              fontFamily: 'SUIT',
+              fontSize: _s(10),
+              fontWeight: FontWeight.w700,
+              color: const Color(0xB3FFFFFF),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 게임 종료 득점 부서(확장 20, 24, 28, 32) 표식.
+  Widget _endgameBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: _s(6), vertical: _s(3)),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0x66FFFFFF)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.flag_outlined,
+            size: _s(13),
+            color: const Color(0xB3FFFFFF),
+          ),
+          SizedBox(width: _s(3)),
+          Text(
+            '종료',
             style: TextStyle(
               fontFamily: 'SUIT',
               fontSize: _s(10),

@@ -39,9 +39,15 @@ flutter build web && flutter build apk --release
 ```
 
 - 사용자 확인용 설치는 항상 **릴리즈 APK** (디버그는 스크롤이 버벅임).
-- 웹 확인: `build/web`을 `python -m http.server`로 서빙하되, **반드시 매번
-  새 포트를 사용할 것** — Flutter 서비스 워커가 같은 오리진에서 이전 빌드를
-  캐시로 서빙해 거짓 검증을 하게 된다 (실제 사고 이력 있음).
+- 웹 확인: **`flutter build web --pwa-strategy=none`으로 빌드**(서비스 워커
+  제거)하고 `build/web`을 **고정 포트 7777** 하나로만 서빙할 것
+  (`python -m http.server 7777`). 이미 서버가 떠 있으면 재사용한다 —
+  포트를 매번 바꾸지 말 것 (사용자 지시, 2026-09-06). 과거의 "매번 새 포트"
+  규칙은 서비스 워커 캐시 때문이었고, pwa-strategy=none으로 원인이 제거됨.
+  서빙 전 남은 서버 정리는 PowerShell로 python http.server 리스너를 종료.
+- UI 시안(HTML 목업)도 **고정 포트 7778** 하나로만 서빙한다 (사용자 지시).
+  시안 파일은 한 폴더에 모아 두고 같은 서버를 재사용하며, 확인용 탭은
+  사용자가 볼 수 있게 열어 둔다.
 - 타일 디자인 변경 시 골든 재생성:
   `flutter test --update-goldens test/dept_tile_golden_test.dart`.
   위젯 테스트에서 폰트 로드는 setUpAll에서 해야 한다 (testWidgets 본문은
@@ -65,8 +71,15 @@ flutter build web && flutter build apk --release
   조합 코드는 바로 아래 dead_code로 보존, 스토어용 전환 시 복원.
 - `lib/carbon.dart` — 디자인 토큰(CarbonColors/Text/Spacing)과 공용 위젯
   (CarbonButton, CarbonTag, CarbonContentSwitcher, TopBar, TopIconButton)
-- `lib/departments.dart` — 부서 16종 데이터, 인원별 제외 수
-  (`removalByPlayerCount`: 1인=16, 2인=16, 3인=8, 4인=4), `draw()`
+- `lib/departments.dart` — 부서 32종 데이터(기본 1~16 + 확장 17~32,
+  `expansion`/`endgame` 필드), 인원별 제외 수
+  (`removalByPlayerCount`: 1인=16, 2인=16, 3인=8, 4인=4), `draw()`,
+  `drawExpansion()`(유형별 8종 중 4종 → 페어 32장 → 기본 제외 규칙,
+  확장 룰북 2쪽)
+- `lib/new_beginning.dart` — 확장 "새로운 시작" 입찰 시트 계산기
+  (시트 수치는 확장 룰북 1쪽에서 검증: 큐브 2~6=$6/9/12/15/18,
+  로비 직원 3무료~7=$32, 승점 -6=+$12~+6=$12, 이동 4~10=$5/8/10/15/20,
+  총합≤$50)
 - `lib/setup9.dart` — 세팅 9(중립 디스크) 카드 20장 데이터, 지역별 도시
   (`cityRegions`), `drawDisks()` (1인/4인 = 0개)
 - `lib/reference.dart` — 부서 도감, 아이콘 참조표 화면
@@ -91,6 +104,9 @@ flutter build web && flutter build apk --release
   현재 `DeptTile`의 중앙 엠블럼 슬롯에 표시된다 (그리드에서는 20% 확대 +
   위아래 여백). 저작권상 스토어 배포 불가 — 스토어행이면 아이콘 엠블럼으로
   전환하고 이 폴더를 번들에서 제외할 것.
+- `assets/departments/dept_17~32.png` — 확장 룰북 2–3쪽. **임베디드 래스터
+  금지(직사각형 원판)** — 페이지가 다이컷 테두리를 벡터로 덧그리므로 반드시
+  300dpi 클립 렌더링 + 플러드필 투명화 (`../extract_expansion_tiles.py`).
 - `assets/reficons/i01~47.png` — 규칙서 20쪽 아이콘 참조표. **원본 상대 크기
   유지**(공통 스케일), 캔버스 가로 180px 고정·세로는 실제 높이(행 높이 절약),
   180px 초과분만 축소. 순서: i09=활성 직원, i10=비활성 (스왑 이력 있음 주의).
@@ -101,6 +117,18 @@ flutter build web && flutter build apk --release
 - 지역 색(규칙서 15쪽 배너): 서부 `#C2B49B` 중서부 `#C0503C` 남부 `#65A76B`
   동부 `#885F88` (`regionColors` in main.dart).
 
+## UI 패턴 (사용자 확정)
+
+- 섹션 헤더: **흰색 카드**(배경 #FFFFFF + 옅은 보더 #E4E6E7 + 좌측 컬러 바
+  4px). 결과 화면·룰 요약·도감·계산기 공통. 요약 바 통계 카드도 흰색.
+- **다시 뽑기 = 첫 섹션 헤더 우측의 사각 테두리 셔플 아이콘**(36px,
+  `_rerollIconButton`). 부서 타일·중립 디스크 공통. 별도 버튼 줄 없음,
+  인원 변경은 뒤로가기로 대체.
+- 확장 요약 = "종류 고르기(유형별 사용 번호 칩, `_KindCleanupCard`) →
+  타일 제외(유형→번호순 정렬 그리드)" 세로 2단계. 상세에도 종류 고르기 카드.
+- 요약↔상세 전환 시 공통 요소(제목·요약 바·첫 헤더)의 위치가 흔들리면 안 됨
+  (하단 여백을 모드 간 동일하게 유지).
+
 ## 게임 규칙 근거
 
 - 부서 타일: 32개(16종×2) 중 4/3/2인 = 4/8/16개 무작위 제외 (규칙서 4쪽 세팅 4)
@@ -108,3 +136,7 @@ flutter build web && flutter build apk --release
   카드 중간에도 즉시 중단 (세팅 9, 데이터: `../CARNEGIE_SETUP_RANDOMIZER__V1.xlsx`)
 - 1인: 준비는 2인과 동일하되 **중립 디스크 배치 없음** (규칙서 18쪽).
   1인 도우미 탭 내용은 규칙서 18–19쪽 요약.
+- 확장 "새로운 부서": 유형별로 8종 중 서로 다른 4종을 뽑아 페어 32장 구성 후
+  기본 제외 규칙 적용 (확장 룰북 2쪽). 세트3(19·23·27·31)=지속,
+  세트4(20·24·28·32)=게임 종료 득점(`endgame`). 원본 PDF:
+  `../Carnegie-rules-EXPANSION-EN-WEB.pdf`

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:carnegie_departments/departments.dart';
 import 'package:carnegie_departments/dept_tile.dart';
 import 'package:carnegie_departments/main.dart';
+import 'package:carnegie_departments/new_beginning.dart';
 import 'package:carnegie_departments/reference.dart';
 import 'package:carnegie_departments/rules.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ void main() {
     expect(find.text('규칙'), findsOneWidget);
   });
 
-  testWidgets('부서 도감: 16종 전체가 오버플로 없이 렌더링된다', (tester) async {
+  testWidgets('부서 도감: 기본판·확장 탭이 오버플로 없이 렌더링된다', (tester) async {
     await pumpPhone(tester, const DeptCatalogScreen());
     // 끝까지 스크롤해서 지연 생성 항목까지 전부 레이아웃시킨다.
     final scrollable = find.byType(Scrollable).first;
@@ -70,6 +71,62 @@ void main() {
     }
     await tester.pumpAndSettle();
     expect(find.byType(DeptEmblem), findsWidgets);
+
+    // 확장 탭으로 전환하면 확장 부서가 표시된다.
+    await tester.drag(scrollable, const Offset(0, 20000));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('확장'));
+    await tester.pumpAndSettle();
+    expect(find.text('인사 행정'), findsOneWidget);
+    for (var i = 0; i < 30; i++) {
+      await tester.drag(scrollable, const Offset(0, -600));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.byType(DeptEmblem), findsWidgets);
+  });
+
+  for (final players in [2, 3, 4]) {
+    testWidgets('확장 $players인 결과 화면: 요약이 오버플로 없이 렌더링된다', (tester) async {
+      await pumpPhone(
+        tester,
+        ResultScreen(result: drawExpansion(players, Random(42))),
+      );
+      expect(find.text('사용할 종류'), findsOneWidget);
+      expect(find.text('종류 고르기'), findsOneWidget);
+    });
+  }
+
+  testWidgets('확장 결과 화면: 상세 전환 시 32종이 유형별로 렌더링된다', (tester) async {
+    await pumpPhone(tester, ResultScreen(result: drawExpansion(3, Random(42))));
+    await tester.tap(find.text('상세'));
+    await tester.pump();
+    final scrollable = find.byType(Scrollable).first;
+    for (var i = 0; i < 60; i++) {
+      await tester.drag(scrollable, const Offset(0, -600));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    expect(find.byType(DeptTile), findsWidgets);
+  });
+
+  testWidgets('게임 준비: 확장 토글 후 뽑으면 확장 요약이 표시된다', (tester) async {
+    await pumpPhone(tester, const SetupScreen());
+    await tester.tap(find.text('확장 포함'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('3인'));
+    await tester.pumpAndSettle();
+    expect(find.text('사용할 종류'), findsOneWidget);
+  });
+
+  testWidgets('새로운 시작 계산기: 선택에 따라 예산이 갱신된다', (tester) async {
+    await pumpPhone(tester, const NewBeginningScreen());
+    // 기본값: 큐브 2개($6) + 이동 4회($5) = 지출 $11.
+    expect(find.text('남는 예산 \$39'), findsOneWidget);
+    await tester.tap(find.text('6개'));
+    await tester.pumpAndSettle();
+    // 큐브 6개($18)로 변경 → 지출 $23.
+    expect(find.text('남는 예산 \$27'), findsOneWidget);
   });
 
   testWidgets('1-2인: 중립 디스크 탭에 18개가 표시된다', (tester) async {
