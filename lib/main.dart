@@ -372,16 +372,6 @@ class _ResultScreenState extends State<ResultScreen> {
   int _tab = 0;
   bool _detail = false;
 
-  /// 확장 요약의 슬라이딩 탭(종류 고르기 / 타일 제외) 상태.
-  final PageController _expPage = PageController();
-  int _expTab = 0;
-
-  @override
-  void dispose() {
-    _expPage.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -445,7 +435,8 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  /// 결과 화면 공통 헤더: 제목 줄 + 요약 바 + 액션 버튼.
+  /// 결과 화면 공통 헤더: 제목 줄 + 요약 바.
+  /// 다시 뽑기는 각 모드의 첫 섹션 헤더 우측 아이콘, 인원 변경은 뒤로가기.
   List<Widget> _deptHeaderChildren() {
     return [
       Row(
@@ -479,120 +470,64 @@ class _ResultScreenState extends State<ResultScreen> {
       const SizedBox(height: CarbonSpacing.s5),
       _SummaryBar(result: _result),
       const SizedBox(height: CarbonSpacing.s5),
-      Row(
-        children: [
-          CarbonButton(
-            label: '다시 뽑기',
-            icon: Icons.shuffle,
-            expanded: false,
-            onPressed: () => setState(
-              () => _result = _result.isExpansion
-                  ? drawExpansion(_result.playerCount)
-                  : draw(_result.playerCount),
-            ),
-          ),
-          const SizedBox(width: CarbonSpacing.s3),
-          CarbonButton(
-            label: '인원 변경',
-            icon: Icons.arrow_back,
-            kind: CarbonButtonKind.tertiary,
-            expanded: false,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
-      const SizedBox(height: CarbonSpacing.s4),
     ];
   }
 
-  /// 확장 요약: 종류 고르기 / 타일 제외를 슬라이딩 탭으로 (사용자 확정).
-  Widget _expansionSummaryTab(List<Department> shown) {
-    void goTo(int i) => _expPage.animateToPage(
-      i,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
+  void _reroll() => setState(
+    () => _result = _result.isExpansion
+        ? drawExpansion(_result.playerCount)
+        : draw(_result.playerCount),
+  );
+
+  /// 다시 뽑기: 사각 테두리 아이콘 버튼 (섹션 헤더 우측용).
+  /// [onTap]을 주지 않으면 부서 타일 다시 뽑기([_reroll])를 실행한다.
+  Widget _rerollIconButton([VoidCallback? onTap]) {
+    return Material(
+      color: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        side: BorderSide(color: CarbonColors.interactive),
+      ),
+      child: InkWell(
+        onTap: onTap ?? _reroll,
+        hoverColor: CarbonColors.interactiveTint,
+        child: const SizedBox(
+          width: 36,
+          height: 36,
+          child: Icon(Icons.shuffle, size: 18, color: CarbonColors.interactive),
+        ),
+      ),
     );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            CarbonSpacing.s5,
-            CarbonSpacing.s5,
-            CarbonSpacing.s5,
-            0,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: _deptHeaderChildren(),
-          ),
-        ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
-          decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: CarbonColors.borderSubtle),
-            ),
-          ),
-          child: Row(
+  }
+
+  /// 확장 요약: 종류 고르기(헤더 우측 다시 뽑기 아이콘) → 타일 제외를
+  /// 세로로 배치 (사용자 확정 레이아웃).
+  Widget _expansionSummaryTab(List<Department> shown) {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.all(CarbonSpacing.s5),
+          sliver: SliverList.list(
             children: [
-              _TabButton(
-                label: '종류 고르기',
-                icon: Icons.grid_view,
-                selected: _expTab == 0,
-                onTap: () => goTo(0),
+              ..._deptHeaderChildren(),
+              _diskSectionHeader(
+                '종류 고르기',
+                '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+                Icons.grid_view,
+                trailing: _rerollIconButton(),
               ),
-              _TabButton(
-                label: '타일 제외',
-                icon: Icons.archive_outlined,
-                selected: _expTab == 1,
-                onTap: () => goTo(1),
+              const SizedBox(height: CarbonSpacing.s4),
+              _KindCleanupCard(result: _result, onTapDept: _showDetail),
+              const SizedBox(height: CarbonSpacing.s6),
+              _diskSectionHeader(
+                '타일 제외',
+                '꺼내 온 32장에서 아래 타일을 표시된 장수만큼 빼세요',
+                Icons.archive_outlined,
               ),
             ],
           ),
         ),
-        Expanded(
-          child: PageView(
-            controller: _expPage,
-            onPageChanged: (i) => setState(() => _expTab = i),
-            children: [
-              ListView(
-                padding: const EdgeInsets.all(CarbonSpacing.s5),
-                children: [
-                  Text(
-                    '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
-                    style: CarbonText.helperText01,
-                  ),
-                  const SizedBox(height: CarbonSpacing.s4),
-                  _KindCleanupCard(result: _result, onTapDept: _showDetail),
-                  const SizedBox(height: CarbonSpacing.s8),
-                ],
-              ),
-              CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(
-                      CarbonSpacing.s5,
-                      CarbonSpacing.s5,
-                      CarbonSpacing.s5,
-                      0,
-                    ),
-                    sliver: SliverToBoxAdapter(
-                      child: Text(
-                        '꺼내 온 32장에서 아래 타일을 표시된 장수만큼 빼세요',
-                        style: CarbonText.helperText01,
-                      ),
-                    ),
-                  ),
-                  _deptGrid(shown),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: CarbonSpacing.s8),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+        _deptGrid(shown),
+        const SliverToBoxAdapter(child: SizedBox(height: CarbonSpacing.s8)),
       ],
     );
   }
@@ -620,27 +555,55 @@ class _ResultScreenState extends State<ResultScreen> {
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.all(CarbonSpacing.s5),
+          // 모든 모드에서 헤더 다음에 바로 섹션 헤더가 오므로 하단 여백은
+          // 두지 않는다 (요약↔상세 전환 시 위치가 흔들리지 않게 동일 유지).
+          padding: const EdgeInsets.fromLTRB(
+            CarbonSpacing.s5,
+            CarbonSpacing.s5,
+            CarbonSpacing.s5,
+            0,
+          ),
           sliver: SliverList.list(children: _deptHeaderChildren()),
         ),
-        if (!_detail)
-          _deptGrid(shown)
-        else ...[
-          if (_result.isExpansion)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
-              sliver: SliverList.list(
-                children: [
-                  _diskSectionHeader(
-                    '종류 고르기',
-                    '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
-                    Icons.grid_view,
-                  ),
-                  const SizedBox(height: CarbonSpacing.s4),
-                  _KindCleanupCard(result: _result, onTapDept: _showDetail),
-                ],
+        if (!_detail) ...[
+          // 기본판 요약: 확장과 같은 문법 — 섹션 헤더 우측에 다시 뽑기 아이콘.
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
+            sliver: SliverToBoxAdapter(
+              child: _diskSectionHeader(
+                '타일 제외',
+                '아래 타일을 표시된 장수만큼 상자에 되돌리세요',
+                Icons.archive_outlined,
+                trailing: _rerollIconButton(),
               ),
             ),
+          ),
+          _deptGrid(shown),
+        ] else ...[
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
+            sliver: SliverList.list(
+              children: _result.isExpansion
+                  ? [
+                      _diskSectionHeader(
+                        '종류 고르기',
+                        '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+                        Icons.grid_view,
+                        trailing: _rerollIconButton(),
+                      ),
+                      const SizedBox(height: CarbonSpacing.s4),
+                      _KindCleanupCard(result: _result, onTapDept: _showDetail),
+                    ]
+                  : [
+                      _diskSectionHeader(
+                        '전체 부서',
+                        '16종 전체 — 사용·제외 상태 표시',
+                        Icons.grid_view,
+                        trailing: _rerollIconButton(),
+                      ),
+                    ],
+            ),
+          ),
           for (final type in DeptType.values) ...[
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
@@ -655,11 +618,15 @@ class _ResultScreenState extends State<ResultScreen> {
                     horizontal: CarbonSpacing.s4,
                     vertical: CarbonSpacing.s3,
                   ),
+                  // 흰색 카드 헤더 — 사용자 확정.
                   decoration: BoxDecoration(
-                    color: CarbonColors.layer01,
+                    color: CarbonColors.background,
                     border: Border(
                       // 타일 넘버 플레이트와 같은 유형 컬러.
                       left: BorderSide(color: deptTypeColorOf(type), width: 4),
+                      top: const BorderSide(color: Color(0xFFE4E6E7)),
+                      right: const BorderSide(color: Color(0xFFE4E6E7)),
+                      bottom: const BorderSide(color: Color(0xFFE4E6E7)),
                     ),
                   ),
                   child: Row(
@@ -786,19 +753,15 @@ class _ResultScreenState extends State<ResultScreen> {
           '게임에 참여하지 않는 색상의 디스크를 아래대로 게임판에 놓으세요.',
           style: CarbonText.body01.copyWith(color: CarbonColors.textSecondary),
         ),
-        const SizedBox(height: CarbonSpacing.s5),
-        CarbonButton(
-          label: '다시 뽑기',
-          icon: Icons.shuffle,
-          expanded: false,
-          onPressed: () =>
-              setState(() => _disks = drawDisks(_result.playerCount)),
-        ),
         const SizedBox(height: CarbonSpacing.s6),
+        // 다시 뽑기는 부서 타일과 같은 형식 — 첫 섹션 헤더 우측 아이콘.
         _diskSectionHeader(
           '기부 차트',
           '${_disks.donations.length}개 · 표시된 칸에 디스크 1개씩',
           Icons.volunteer_activism_outlined,
+          trailing: _rerollIconButton(
+            () => setState(() => _disks = drawDisks(_result.playerCount)),
+          ),
         ),
         const SizedBox(height: CarbonSpacing.s4),
         _DiskListCard(
@@ -908,33 +871,52 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  Widget _diskSectionHeader(String title, String subtitle, IconData icon) {
+  Widget _diskSectionHeader(
+    String title,
+    String subtitle,
+    IconData icon, {
+    Widget? trailing,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: CarbonSpacing.s4,
         vertical: CarbonSpacing.s3,
       ),
+      // 흰색 카드 헤더(컬러 바 + 옅은 보더) — 사용자 확정.
       decoration: const BoxDecoration(
-        color: CarbonColors.layer01,
+        color: CarbonColors.background,
         border: Border(
           left: BorderSide(color: CarbonColors.interactive, width: 4),
+          top: BorderSide(color: Color(0xFFE4E6E7)),
+          right: BorderSide(color: Color(0xFFE4E6E7)),
+          bottom: BorderSide(color: Color(0xFFE4E6E7)),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: CarbonColors.textPrimary),
-              const SizedBox(width: CarbonSpacing.s3),
-              Expanded(child: Text(title, style: CarbonText.heading02)),
-            ],
-          ),
-          if (subtitle.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(subtitle, style: CarbonText.helperText01),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, size: 18, color: CarbonColors.textPrimary),
+                    const SizedBox(width: CarbonSpacing.s3),
+                    Expanded(child: Text(title, style: CarbonText.heading02)),
+                  ],
+                ),
+                if (subtitle.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(subtitle, style: CarbonText.helperText01),
+                  ),
+              ],
             ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: CarbonSpacing.s3),
+            trailing,
+          ],
         ],
       ),
     );
@@ -967,9 +949,15 @@ class _SummaryBar extends StatelessWidget {
       return Expanded(
         child: Container(
           padding: const EdgeInsets.all(CarbonSpacing.s5),
+          // 흰색 카드로 밝게 — 상단 컬러 바만 유지 (사용자 요청: 어두움 해소).
           decoration: BoxDecoration(
-            color: CarbonColors.layer01,
-            border: Border(top: BorderSide(color: color, width: 4)),
+            color: CarbonColors.background,
+            border: Border(
+              top: BorderSide(color: color, width: 4),
+              left: const BorderSide(color: Color(0xFFE4E6E7)),
+              right: const BorderSide(color: Color(0xFFE4E6E7)),
+              bottom: const BorderSide(color: Color(0xFFE4E6E7)),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

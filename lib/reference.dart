@@ -88,13 +88,19 @@ class _DeptCatalogScreenState extends State<DeptCatalogScreen> {
                             horizontal: CarbonSpacing.s4,
                             vertical: CarbonSpacing.s3,
                           ),
+                          // 흰색 카드 헤더 — 사용자 확정.
                           decoration: BoxDecoration(
-                            color: CarbonColors.layer01,
+                            color: CarbonColors.background,
                             border: Border(
                               // 타일 넘버 플레이트와 같은 유형 컬러.
                               left: BorderSide(
                                 color: deptTypeColorOf(type),
                                 width: 4,
+                              ),
+                              top: const BorderSide(color: Color(0xFFE4E6E7)),
+                              right: const BorderSide(color: Color(0xFFE4E6E7)),
+                              bottom: const BorderSide(
+                                color: Color(0xFFE4E6E7),
                               ),
                             ),
                           ),
