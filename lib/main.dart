@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'carbon.dart';
 import 'departments.dart';
 import 'dept_tile.dart';
+import 'new_beginning.dart';
 import 'reference.dart';
 import 'rules.dart';
 import 'setup9.dart';
@@ -70,22 +71,37 @@ const regionColors = <String, Color>{
 String playerLabel(int p) => p == 2 ? '1-2인' : '$p인';
 
 /// Per-department exclusion state, in physical-setup terms.
-enum TileState { removeBoth, removeOne, keepBoth }
+/// [boxedKind]: 확장 모드에서 유형별 4종 선택에 들지 못해 통째로 상자에
+/// 되돌아가는 종류.
+enum TileState { removeBoth, removeOne, keepBoth, boxedKind }
 
 extension on DrawResult {
-  TileState stateOf(Department d) => switch (removedOf(d)) {
-    2 => TileState.removeBoth,
-    1 => TileState.removeOne,
-    _ => TileState.keepBoth,
-  };
+  TileState stateOf(Department d) {
+    if (isExpansion && !selectedKinds!.contains(d.number)) {
+      return TileState.boxedKind;
+    }
+    return switch (removedOf(d)) {
+      2 => TileState.removeBoth,
+      1 => TileState.removeOne,
+      _ => TileState.keepBoth,
+    };
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Setup screen
 // ---------------------------------------------------------------------------
 
-class SetupScreen extends StatelessWidget {
+class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
+
+  @override
+  State<SetupScreen> createState() => _SetupScreenState();
+}
+
+class _SetupScreenState extends State<SetupScreen> {
+  /// 확장 #1 "새로운 부서" 포함 여부 (세션 한정, 기본 꺼짐).
+  bool _expansion = false;
 
   @override
   Widget build(BuildContext context) {
@@ -106,23 +122,53 @@ class SetupScreen extends StatelessWidget {
                           final header = <Widget>[
                             const SizedBox(height: CarbonSpacing.s7),
                             Text('게임 준비', style: CarbonText.heading05),
-                            const SizedBox(height: CarbonSpacing.s3),
+                            const SizedBox(height: CarbonSpacing.s4),
                             Text(
-                              '인원수만 선택하면 부서 타일 제외와 중립 디스크 '
-                              '배치가 한 번에 준비됩니다.',
+                              '부서 타일 제외 · 중립 디스크 배치 한 번에',
                               style: CarbonText.body02.copyWith(
                                 color: CarbonColors.textSecondary,
                               ),
                             ),
-                            const SizedBox(height: CarbonSpacing.s7),
-                            Text('플레이어 수', style: CarbonText.label01),
-                            const SizedBox(height: CarbonSpacing.s3),
+                            const SizedBox(height: CarbonSpacing.s5),
+                            // 기본판/확장 스위치는 서브 타이틀 아래에 둔다
+                            // (사용자 확정).
+                            Row(
+                              children: [
+                                CarbonContentSwitcher(
+                                  labels: const ['기본판', '확장 포함'],
+                                  selected: _expansion ? 1 : 0,
+                                  onChanged: (i) =>
+                                      setState(() => _expansion = i == 1),
+                                ),
+                              ],
+                            ),
+                            // 모드 설명은 스위치와 인원 카드 사이 중간에,
+                            // 고정 높이로 자리를 잡아 두고 문구만 바꿔서
+                            // 전환 시 아래 레이아웃이 흔들리지 않게 한다.
+                            const SizedBox(height: CarbonSpacing.s4),
+                            SizedBox(
+                              height: 16,
+                              child: Text(
+                                _expansion
+                                    ? '유형별 8종 중 4종을 추려 16종으로 플레이합니다'
+                                    : '기본판 부서 16종을 그대로 사용합니다',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: CarbonText.helperText01,
+                              ),
+                            ),
+                            const SizedBox(height: CarbonSpacing.s4),
                           ];
                           Widget tile(int p) => _PlayerTile(
                             players: p,
+                            expansion: _expansion,
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => ResultScreen(result: draw(p)),
+                                builder: (_) => ResultScreen(
+                                  result: _expansion
+                                      ? drawExpansion(p)
+                                      : draw(p),
+                                ),
                               ),
                             ),
                           );
@@ -196,6 +242,15 @@ class SetupScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  TopIconButton(
+                    icon: Icons.calculate_outlined,
+                    tooltip: '새로운 시작 계산기',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const NewBeginningScreen(),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -207,17 +262,25 @@ class SetupScreen extends StatelessWidget {
 }
 
 class _PlayerTile extends StatelessWidget {
-  const _PlayerTile({required this.players, required this.onTap});
+  const _PlayerTile({
+    required this.players,
+    required this.onTap,
+    this.expansion = false,
+  });
 
   final int players;
 
   /// 카드를 누르면 바로 뽑기 결과 화면으로 이동한다 (별도 확정 버튼 없음).
   final VoidCallback onTap;
 
+  /// 확장 모드일 때 인원수 옆에 확장 표식 아이콘을 보여준다.
+  final bool expansion;
+
   @override
   Widget build(BuildContext context) {
     final removed = removalByPlayerCount[players]!;
-    final kept = 32 - removed;
+    // 기본판·확장 모두 16종×2장 = 32장으로 시작한다.
+    final kept = departments.length * copiesPerDepartment - removed;
     return Material(
       color: CarbonColors.background,
       shape: const RoundedRectangleBorder(
@@ -242,11 +305,23 @@ class _PlayerTile extends StatelessWidget {
                   ),
                   const SizedBox(width: CarbonSpacing.s3),
                   Expanded(
-                    child: Text(
-                      playerLabel(players),
-                      style: CarbonText.heading03.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                    child: Row(
+                      children: [
+                        Text(
+                          playerLabel(players),
+                          style: CarbonText.heading03.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        if (expansion) ...[
+                          const SizedBox(width: CarbonSpacing.s2),
+                          const Icon(
+                            Icons.dashboard_customize_outlined,
+                            size: 14,
+                            color: CarbonColors.textSecondary,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   const Icon(
@@ -296,6 +371,16 @@ class _ResultScreenState extends State<ResultScreen> {
   late DiskSetup _disks = drawDisks(widget.result.playerCount);
   int _tab = 0;
   bool _detail = false;
+
+  /// 확장 요약의 슬라이딩 탭(종류 고르기 / 타일 제외) 상태.
+  final PageController _expPage = PageController();
+  int _expTab = 0;
+
+  @override
+  void dispose() {
+    _expPage.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -360,64 +445,202 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
+  /// 결과 화면 공통 헤더: 제목 줄 + 요약 바 + 액션 버튼.
+  List<Widget> _deptHeaderChildren() {
+    return [
+      Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Text(
+                  '${playerLabel(_result.playerCount)} 게임',
+                  style: CarbonText.heading05,
+                ),
+                // 인원 카드와 같은 비율(글자 크기 대비)의 확장 표식.
+                if (_result.isExpansion) ...[
+                  const SizedBox(width: 6),
+                  const Icon(
+                    Icons.dashboard_customize_outlined,
+                    size: 22,
+                    color: CarbonColors.textSecondary,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          CarbonContentSwitcher(
+            labels: const ['요약', '상세'],
+            selected: _detail ? 1 : 0,
+            onChanged: (i) => setState(() => _detail = i == 1),
+          ),
+        ],
+      ),
+      const SizedBox(height: CarbonSpacing.s5),
+      _SummaryBar(result: _result),
+      const SizedBox(height: CarbonSpacing.s5),
+      Row(
+        children: [
+          CarbonButton(
+            label: '다시 뽑기',
+            icon: Icons.shuffle,
+            expanded: false,
+            onPressed: () => setState(
+              () => _result = _result.isExpansion
+                  ? drawExpansion(_result.playerCount)
+                  : draw(_result.playerCount),
+            ),
+          ),
+          const SizedBox(width: CarbonSpacing.s3),
+          CarbonButton(
+            label: '인원 변경',
+            icon: Icons.arrow_back,
+            kind: CarbonButtonKind.tertiary,
+            expanded: false,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+      const SizedBox(height: CarbonSpacing.s4),
+    ];
+  }
+
+  /// 확장 요약: 종류 고르기 / 타일 제외를 슬라이딩 탭으로 (사용자 확정).
+  Widget _expansionSummaryTab(List<Department> shown) {
+    void goTo(int i) => _expPage.animateToPage(
+      i,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            CarbonSpacing.s5,
+            CarbonSpacing.s5,
+            CarbonSpacing.s5,
+            0,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _deptHeaderChildren(),
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
+          decoration: const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: CarbonColors.borderSubtle),
+            ),
+          ),
+          child: Row(
+            children: [
+              _TabButton(
+                label: '종류 고르기',
+                icon: Icons.grid_view,
+                selected: _expTab == 0,
+                onTap: () => goTo(0),
+              ),
+              _TabButton(
+                label: '타일 제외',
+                icon: Icons.archive_outlined,
+                selected: _expTab == 1,
+                onTap: () => goTo(1),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: PageView(
+            controller: _expPage,
+            onPageChanged: (i) => setState(() => _expTab = i),
+            children: [
+              ListView(
+                padding: const EdgeInsets.all(CarbonSpacing.s5),
+                children: [
+                  Text(
+                    '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+                    style: CarbonText.helperText01,
+                  ),
+                  const SizedBox(height: CarbonSpacing.s4),
+                  _KindCleanupCard(result: _result, onTapDept: _showDetail),
+                  const SizedBox(height: CarbonSpacing.s8),
+                ],
+              ),
+              CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      CarbonSpacing.s5,
+                      CarbonSpacing.s5,
+                      CarbonSpacing.s5,
+                      0,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        '꺼내 온 32장에서 아래 타일을 표시된 장수만큼 빼세요',
+                        style: CarbonText.helperText01,
+                      ),
+                    ),
+                  ),
+                  _deptGrid(shown),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: CarbonSpacing.s8),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _deptTab() {
-    // 요약: 제외된 타일만 번호순 · 상세: 16종 전체 번호순(사용/제외 표시).
+    // 요약(기본판): 제외 타일만 번호순 · 요약(확장): 슬라이딩 탭 2단계 —
+    // 종류 고르기(번호 칩) → 타일 제외(그리드) (사용자 확정 B안).
+    // 상세: 전체 종류 번호순(사용/제외 표시).
+    final all = _result.isExpansion ? allDepartments : departments;
     final shown = _detail
-        ? ([...departments]..sort((a, b) => a.number.compareTo(b.number)))
-        : (departments
-              .where((d) => _result.stateOf(d) != TileState.keepBoth)
+        ? ([...all]..sort((a, b) => a.number.compareTo(b.number)))
+        : (all
+              .where(
+                (d) =>
+                    _result.stateOf(d) == TileState.removeBoth ||
+                    _result.stateOf(d) == TileState.removeOne,
+              )
               .toList()
-            ..sort((a, b) => a.number.compareTo(b.number)));
+            // 유형 순서(인사→경영→건설→연구개발), 같은 유형 안에서는 번호순.
+            ..sort((a, b) {
+              final byType = a.type.index.compareTo(b.type.index);
+              return byType != 0 ? byType : a.number.compareTo(b.number);
+            }));
+    if (!_detail && _result.isExpansion) return _expansionSummaryTab(shown);
     return CustomScrollView(
       slivers: [
         SliverPadding(
           padding: const EdgeInsets.all(CarbonSpacing.s5),
-          sliver: SliverList.list(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${playerLabel(_result.playerCount)} 게임',
-                      style: CarbonText.heading05,
-                    ),
-                  ),
-                  CarbonContentSwitcher(
-                    labels: const ['요약', '상세'],
-                    selected: _detail ? 1 : 0,
-                    onChanged: (i) => setState(() => _detail = i == 1),
-                  ),
-                ],
-              ),
-              const SizedBox(height: CarbonSpacing.s5),
-              _SummaryBar(result: _result),
-              const SizedBox(height: CarbonSpacing.s5),
-              Row(
-                children: [
-                  CarbonButton(
-                    label: '다시 뽑기',
-                    icon: Icons.shuffle,
-                    expanded: false,
-                    onPressed: () =>
-                        setState(() => _result = draw(_result.playerCount)),
-                  ),
-                  const SizedBox(width: CarbonSpacing.s3),
-                  CarbonButton(
-                    label: '인원 변경',
-                    icon: Icons.arrow_back,
-                    kind: CarbonButtonKind.tertiary,
-                    expanded: false,
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: CarbonSpacing.s4),
-            ],
-          ),
+          sliver: SliverList.list(children: _deptHeaderChildren()),
         ),
         if (!_detail)
           _deptGrid(shown)
-        else
+        else ...[
+          if (_result.isExpansion)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
+              sliver: SliverList.list(
+                children: [
+                  _diskSectionHeader(
+                    '종류 고르기',
+                    '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+                    Icons.grid_view,
+                  ),
+                  const SizedBox(height: CarbonSpacing.s4),
+                  _KindCleanupCard(result: _result, onTapDept: _showDetail),
+                ],
+              ),
+            ),
           for (final type in DeptType.values) ...[
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
@@ -441,6 +664,14 @@ class _ResultScreenState extends State<ResultScreen> {
                   ),
                   child: Row(
                     children: [
+                      // 도감과 같은 공식 유형 아이콘 (참조표 i01~i04).
+                      Image.asset(
+                        'assets/reficons/i0${DeptType.values.indexOf(type) + 1}.png',
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: CarbonSpacing.s3),
                       Text(type.ko, style: CarbonText.heading02),
                       const SizedBox(width: CarbonSpacing.s3),
                       Text(type.en, style: CarbonText.helperText01),
@@ -451,6 +682,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
             _deptGrid(shown.where((d) => d.type == type).toList()),
           ],
+        ],
         const SliverToBoxAdapter(child: SizedBox(height: CarbonSpacing.s8)),
       ],
     );
@@ -715,8 +947,11 @@ class _ResultScreenState extends State<ResultScreen> {
       shape: const RoundedRectangleBorder(),
       constraints: const BoxConstraints(maxWidth: 672),
       isScrollControlled: true,
-      builder: (context) =>
-          _DeptDetailSheet(dept: d, removedCount: _result.removedOf(d)),
+      builder: (context) => _DeptDetailSheet(
+        dept: d,
+        removedCount: _result.removedOf(d),
+        boxed: _result.stateOf(d) == TileState.boxedKind,
+      ),
     );
   }
 }
@@ -760,6 +995,26 @@ class _SummaryBar extends StatelessWidget {
       );
     }
 
+    // 확장(B안): 요약 2단계와 같은 순서 — ① 사용할 종류 ② 제외할 타일.
+    if (result.isExpansion) {
+      return Row(
+        children: [
+          stat(
+            '사용할 종류',
+            result.selectedKinds!.length,
+            CarbonColors.supportSuccess,
+            Icons.grid_view,
+          ),
+          const SizedBox(width: CarbonSpacing.s3),
+          stat(
+            '제외할 타일',
+            result.totalRemoved,
+            CarbonColors.supportError,
+            Icons.archive_outlined,
+          ),
+        ],
+      );
+    }
     return Row(
       children: [
         stat(
@@ -776,6 +1031,75 @@ class _SummaryBar extends StatelessWidget {
           Icons.table_bar_outlined,
         ),
       ],
+    );
+  }
+}
+
+/// 확장 요약 1단계: 유형별로 이번 게임에 사용할 종류를 번호 칩으로 나열.
+class _KindCleanupCard extends StatelessWidget {
+  const _KindCleanupCard({required this.result, required this.onTapDept});
+
+  final DrawResult result;
+  final void Function(Department) onTapDept;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CarbonColors.background,
+        border: Border.all(color: CarbonColors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final (i, type) in DeptType.values.indexed) ...[
+            if (i > 0)
+              const Divider(
+                height: 1,
+                thickness: 1,
+                indent: CarbonSpacing.s5,
+                color: Color(0xFFE4E6E7),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: CarbonSpacing.s5,
+                vertical: CarbonSpacing.s4,
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 64,
+                    child: Text(
+                      type.ko,
+                      style: CarbonText.heading01.copyWith(
+                        color: deptTypeColorOf(type),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Wrap(
+                      spacing: CarbonSpacing.s3,
+                      runSpacing: CarbonSpacing.s3,
+                      children: [
+                        for (final d in allDepartments.where(
+                          (d) =>
+                              d.type == type &&
+                              result.selectedKinds!.contains(d.number),
+                        ))
+                          InkWell(
+                            onTap: () => onTapDept(d),
+                            child: DeptNumberPlate(dept: d, size: 32),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -810,6 +1134,13 @@ class _DeptCard extends StatelessWidget {
         Icons.check,
         null,
         const Color(0x9924A148),
+        CarbonColors.textOnColor,
+      ),
+      // 확장 모드: 유형별 선택에 들지 못해 통째로 상자로 가는 종류.
+      TileState.boxedKind => (
+        Icons.inventory_2_outlined,
+        null,
+        const Color(0x99A2999E),
         CarbonColors.textOnColor,
       ),
     };
@@ -877,10 +1208,17 @@ class _TypeTag extends StatelessWidget {
 }
 
 class _DeptDetailSheet extends StatelessWidget {
-  const _DeptDetailSheet({required this.dept, required this.removedCount});
+  const _DeptDetailSheet({
+    required this.dept,
+    required this.removedCount,
+    this.boxed = false,
+  });
 
   final Department dept;
   final int removedCount;
+
+  /// 확장 모드에서 유형별 선택에 들지 못해 이번 게임에 쓰이지 않는 종류.
+  final bool boxed;
 
   @override
   Widget build(BuildContext context) {
@@ -932,24 +1270,44 @@ class _DeptDetailSheet extends StatelessWidget {
               runSpacing: CarbonSpacing.s2,
               children: [
                 _TypeTag(type: dept.type),
+                if (dept.expansion)
+                  const CarbonTag(
+                    text: '확장',
+                    bg: CarbonColors.tagGrayBg,
+                    fg: CarbonColors.tagGrayText,
+                  ),
                 if (dept.ongoing)
                   const CarbonTag(
                     text: '지속 효과',
                     bg: CarbonColors.tagAccentBg,
                     fg: CarbonColors.tagAccentText,
                   ),
-                if (removedCount > 0)
-                  CarbonTag(
-                    text: '$removedCount장 제외',
-                    bg: CarbonColors.tagRedBg,
-                    fg: CarbonColors.tagRedText,
+                if (dept.endgame)
+                  const CarbonTag(
+                    text: '게임 종료',
+                    bg: CarbonColors.tagAccentBg,
+                    fg: CarbonColors.tagAccentText,
                   ),
-                if (kept > 0)
-                  CarbonTag(
-                    text: '$kept장 사용',
-                    bg: CarbonColors.tagGreenBg,
-                    fg: CarbonColors.tagGreenText,
-                  ),
+                if (boxed)
+                  const CarbonTag(
+                    text: '이번 게임 미사용',
+                    bg: CarbonColors.tagGrayBg,
+                    fg: CarbonColors.tagGrayText,
+                  )
+                else ...[
+                  if (removedCount > 0)
+                    CarbonTag(
+                      text: '$removedCount장 제외',
+                      bg: CarbonColors.tagRedBg,
+                      fg: CarbonColors.tagRedText,
+                    ),
+                  if (kept > 0)
+                    CarbonTag(
+                      text: '$kept장 사용',
+                      bg: CarbonColors.tagGreenBg,
+                      fg: CarbonColors.tagGreenText,
+                    ),
+                ],
               ],
             ),
             const SizedBox(height: CarbonSpacing.s5),

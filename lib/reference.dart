@@ -8,11 +8,20 @@ import 'dept_tile.dart';
 // Department catalog screen (부서 도감)
 // ---------------------------------------------------------------------------
 
-class DeptCatalogScreen extends StatelessWidget {
+class DeptCatalogScreen extends StatefulWidget {
   const DeptCatalogScreen({super.key});
 
   @override
+  State<DeptCatalogScreen> createState() => _DeptCatalogScreenState();
+}
+
+class _DeptCatalogScreenState extends State<DeptCatalogScreen> {
+  /// 0 = 기본판(1~16), 1 = 확장(17~32).
+  int _tab = 0;
+
+  @override
   Widget build(BuildContext context) {
+    final shown = _tab == 0 ? departments : expansionDepartments;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -46,11 +55,27 @@ class DeptCatalogScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.all(CarbonSpacing.s5),
                     children: [
-                      Text('부서 도감', style: CarbonText.heading05),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text('부서 도감', style: CarbonText.heading05),
+                          ),
+                          CarbonContentSwitcher(
+                            labels: const ['기본판', '확장'],
+                            selected: _tab,
+                            onChanged: (i) => setState(() => _tab = i),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: CarbonSpacing.s3),
                       Text(
-                        '기본판 부서 16종 — 종류별 4개씩, 각 2장씩 들어 있습니다. '
-                        '4·8·12·16번 부서는 색이 다르며 지속 효과를 제공합니다.',
+                        _tab == 0
+                            ? '기본판 부서 16종(1~16번) — 종류별 4개씩, 각 2장씩 '
+                                  '들어 있습니다. 4·8·12·16번 부서는 색이 다르며 '
+                                  '지속 효과를 제공합니다.'
+                            : '확장 부서 16종(17~32번) — 종류별 4개씩, 각 2장씩 '
+                                  '들어 있습니다. 지속 효과 부서와 게임 종료 시 '
+                                  '득점하는 부서가 있습니다.',
                         style: CarbonText.body01.copyWith(
                           color: CarbonColors.textSecondary,
                         ),
@@ -89,9 +114,7 @@ class DeptCatalogScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: CarbonSpacing.s4),
-                        for (final d in departments.where(
-                          (d) => d.type == type,
-                        )) ...[
+                        for (final d in shown.where((d) => d.type == type)) ...[
                           _CatalogRow(dept: d),
                           const SizedBox(height: CarbonSpacing.s4),
                         ],
@@ -242,6 +265,15 @@ class _CatalogRow extends StatelessWidget {
                   padding: EdgeInsets.only(left: CarbonSpacing.s2),
                   child: CarbonTag(
                     text: '지속 효과',
+                    bg: CarbonColors.tagAccentBg,
+                    fg: CarbonColors.tagAccentText,
+                  ),
+                ),
+              if (dept.endgame)
+                const Padding(
+                  padding: EdgeInsets.only(left: CarbonSpacing.s2),
+                  child: CarbonTag(
+                    text: '게임 종료',
                     bg: CarbonColors.tagAccentBg,
                     fg: CarbonColors.tagAccentText,
                   ),

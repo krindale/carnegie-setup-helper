@@ -16,6 +16,30 @@ void main() {
     }
   });
 
+  test('drawExpansion picks 4 kinds per type and removes correctly', () {
+    for (final entry in removalByPlayerCount.entries) {
+      final result = drawExpansion(entry.key, Random(42));
+      expect(result.isExpansion, isTrue);
+
+      // 유형마다 정확히 4종씩, 총 16종이 선택된다.
+      final selected = result.selectedKinds!;
+      expect(selected.length, 16);
+      for (final type in DeptType.values) {
+        final ofType = allDepartments
+            .where((d) => d.type == type && selected.contains(d.number))
+            .length;
+        expect(ofType, 4);
+      }
+
+      // 제외 타일은 모두 선택된 종류에서만 나오고, 수량이 규칙과 일치한다.
+      expect(result.removed.keys.every(selected.contains), isTrue);
+      final removed = result.removed.values.fold<int>(0, (sum, c) => sum + c);
+      expect(removed, entry.value);
+      expect(result.removed.values.every((c) => c >= 1 && c <= 2), isTrue);
+      expect(result.totalKept, 32 - entry.value);
+    }
+  });
+
   testWidgets('setup screen renders and can draw', (tester) async {
     await tester.pumpWidget(const CarnegieApp());
     expect(find.text('게임 준비'), findsOneWidget);
