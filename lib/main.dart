@@ -215,6 +215,16 @@ class _SetupScreenState extends State<SetupScreen> {
               right: 0,
               child: Row(
                 children: [
+                  // 새로운 시작 계산기를 맨 왼쪽에 (사용자 확정).
+                  TopIconButton(
+                    icon: Icons.calculate_outlined,
+                    tooltip: '새로운 시작 계산기',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const NewBeginningScreen(),
+                      ),
+                    ),
+                  ),
                   TopIconButton(
                     icon: Icons.article_outlined,
                     tooltip: '게임 룰 요약',
@@ -239,15 +249,6 @@ class _SetupScreenState extends State<SetupScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const IconReferenceScreen(),
-                      ),
-                    ),
-                  ),
-                  TopIconButton(
-                    icon: Icons.calculate_outlined,
-                    tooltip: '새로운 시작 계산기',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const NewBeginningScreen(),
                       ),
                     ),
                   ),
