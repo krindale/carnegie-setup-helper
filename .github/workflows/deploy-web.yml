@@ -1,4 +1,4 @@
-name: Deploy web to GitHub Pages
+name: Deploy web to Cloudflare
 
 on:
   push:
@@ -7,35 +7,30 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: cloudflare-web
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.38.2
+          flutter-version: 3.47.5
           cache: true
       - run: flutter pub get
-      - run: flutter build web --release --base-href /carnegie-setup-helper/
-      - uses: actions/upload-pages-artifact@v3
+      # wasm(Skwasm) 렌더러 + 루트 경로. 서비스 워커는 끔(배포 직후 구버전 캐시 방지).
+      # web/_headers 의 COOP/COEP 가 build/web 으로 복사되어 멀티스레드 렌더링을 켠다.
+      - run: flutter build web --wasm --release --base-href / --pwa-strategy=none
+      # wrangler.jsonc(assets.directory = build/web) 기준으로 Workers 정적 에셋 배포.
+      # 액션 기본 wrangler(3.x)는 main 없는 assets 전용 설정을 못 읽으므로 4.x 고정.
+      - uses: cloudflare/wrangler-action@v3
         with:
-          path: build/web
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          wranglerVersion: "4.135.0"
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
