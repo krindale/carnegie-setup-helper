@@ -99,18 +99,18 @@ flutter build web && flutter build apk --release
 
 에셋은 상위 폴더의 PDF에서 PyMuPDF로 추출했다 (`../카네기_규칙서.pdf`).
 
-- `assets/departments/dept_01~16.png` — 규칙서 16–17쪽을 300dpi 클립 렌더링
+- `assets/departments/dept_01~16.webp` — 규칙서 16–17쪽을 300dpi 클립 렌더링
   후 보더 플러드필로 배경 투명화. (임베디드 래스터는 탭이 잘려 있어 금지)
   현재 `DeptTile`의 중앙 엠블럼 슬롯에 표시된다 (그리드에서는 20% 확대 +
   위아래 여백). 저작권상 스토어 배포 불가 — 스토어행이면 아이콘 엠블럼으로
   전환하고 이 폴더를 번들에서 제외할 것.
-- `assets/departments/dept_17~32.png` — 확장 룰북 2–3쪽. **임베디드 래스터
+- `assets/departments/dept_17~32.webp` — 확장 룰북 2–3쪽. **임베디드 래스터
   금지(직사각형 원판)** — 페이지가 다이컷 테두리를 벡터로 덧그리므로 반드시
   300dpi 클립 렌더링 + 플러드필 투명화 (`../extract_expansion_tiles.py`).
-- `assets/reficons/i01~47.png` — 규칙서 20쪽 아이콘 참조표. **원본 상대 크기
+- `assets/reficons/i01~47.webp` — 규칙서 20쪽 아이콘 참조표. **원본 상대 크기
   유지**(공통 스케일), 캔버스 가로 180px 고정·세로는 실제 높이(행 높이 절약),
   180px 초과분만 축소. 순서: i09=활성 직원, i10=비활성 (스왑 이력 있음 주의).
-- `assets/pcount/p1~4.png` — 규칙서 20쪽 게임 준비 참조표의 인원 아이콘
+- `assets/pcount/p1~4.webp` — 규칙서 20쪽 게임 준비 참조표의 인원 아이콘
   (p1은 p2에서 앞사람만 크롭).
 - `assets/icon/` — 앱 아이콘(규칙서 9쪽 인사 육각 아이콘).
   `dart run flutter_launcher_icons`로 재생성.

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -300,7 +301,7 @@ class _PlayerTile extends StatelessWidget {
               Row(
                 children: [
                   Image.asset(
-                    'assets/pcount/p$players.png',
+                    'assets/pcount/p$players.webp',
                     height: 18,
                     fit: BoxFit.contain,
                   ),
@@ -634,7 +635,7 @@ class _ResultScreenState extends State<ResultScreen> {
                     children: [
                       // 도감과 같은 공식 유형 아이콘 (참조표 i01~i04).
                       Image.asset(
-                        'assets/reficons/i0${DeptType.values.indexOf(type) + 1}.png',
+                        'assets/reficons/i0${DeptType.values.indexOf(type) + 1}.webp',
                         width: 24,
                         height: 24,
                         fit: BoxFit.contain,

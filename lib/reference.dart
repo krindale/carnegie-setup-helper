@@ -107,7 +107,7 @@ class _DeptCatalogScreenState extends State<DeptCatalogScreen> {
                           child: Row(
                             children: [
                               Image.asset(
-                                'assets/reficons/i0${DeptType.values.indexOf(type) + 1}.png',
+                                'assets/reficons/i0${DeptType.values.indexOf(type) + 1}.webp',
                                 width: 24,
                                 height: 24,
                                 fit: BoxFit.contain,
@@ -307,7 +307,7 @@ class _CatalogRow extends StatelessWidget {
 
 class _RefItem {
   const _RefItem(this.icon, this.label);
-  final int icon; // reficons/iNN.png
+  final int icon; // reficons/iNN.webp
   final String label;
 }
 
@@ -539,7 +539,7 @@ class _RefStrip extends StatelessWidget {
                   SizedBox(
                     width: 60,
                     child: Image.asset(
-                      'assets/reficons/i${item.icon.toString().padLeft(2, '0')}.png',
+                      'assets/reficons/i${item.icon.toString().padLeft(2, '0')}.webp',
                       cacheWidth: 180,
                       fit: BoxFit.fitWidth,
                     ),
