@@ -122,6 +122,13 @@ class _SetupScreenState extends State<SetupScreen> {
                         builder: (context, constraints) {
                           final header = <Widget>[
                             const SizedBox(height: CarbonSpacing.s7),
+                            // 앱 정체(카네기 셋업 도우미)를 첫 화면에서 드러내는
+                            // 오버라인 (시안 A, docs/mockups/home-title.html).
+                            const Text(
+                              'CARNEGIE · 카네기 셋업 도우미',
+                              style: CarbonText.helperText01,
+                            ),
+                            const SizedBox(height: CarbonSpacing.s3),
                             Text('게임 준비', style: CarbonText.heading05),
                             const SizedBox(height: CarbonSpacing.s4),
                             Text(
