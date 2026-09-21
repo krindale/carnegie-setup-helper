@@ -1,94 +1,96 @@
 # 카네기 셀렉터 (Carnegie Setup Helper)
 
-카네기(Carnegie) 보드게임의 게임 준비를 도와주는 앱입니다.
-Android / iOS / 웹을 지원합니다 (Flutter).
+보드게임 **카네기(Carnegie)** 의 게임 준비를 한 번에 끝내주는 도우미 앱입니다.
+인원수만 고르면 제외할 부서 타일과 중립 디스크 배치를 무작위로 뽑아 주고,
+1인 게임 진행·룰 요약·부서 도감·아이콘 참조표까지 한 앱에 담았습니다.
 
-> 저장소: https://github.com/krindale/carnegie-setup-helper (비공개)
+Flutter로 만들어 **Android / iOS / 웹**을 지원합니다.
+
+🌐 **웹 버전:** https://carnegie-setup-helper.krindale.workers.dev
+
+## 스크린샷
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/01_setup.jpg" width="200"><br><sub>게임 준비</sub></td>
+    <td align="center"><img src="docs/screenshots/02_dept_tiles.jpg" width="200"><br><sub>부서 타일 제외</sub></td>
+    <td align="center"><img src="docs/screenshots/03_neutral_disks.jpg" width="200"><br><sub>중립 디스크 배치</sub></td>
+    <td align="center"><img src="docs/screenshots/04_solo_helper.jpg" width="200"><br><sub>1인 도우미</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/05_rules_summary.jpg" width="200"><br><sub>게임 룰 요약</sub></td>
+    <td align="center"><img src="docs/screenshots/06_setup_checklist.jpg" width="200"><br><sub>초기 세팅 체크리스트</sub></td>
+    <td align="center"><img src="docs/screenshots/07_dept_catalog.jpg" width="200"><br><sub>부서 도감</sub></td>
+    <td align="center"><img src="docs/screenshots/08_icon_reference.jpg" width="200"><br><sub>아이콘 참조표</sub></td>
+  </tr>
+</table>
 
 ## 기능
 
-- **인원 선택 (1~4인)** — 인원수만 고르면 셋업이 한 번에 준비됩니다.
-- **확장 #1 "새로운 부서" 지원** — 첫 화면의 기본판/확장 포함 스위치.
-  확장 모드에서는 유형별 8종(기본 4 + 확장 4) 중 4종을 무작위로 추려
-  16종 32장을 구성한 뒤 기본 규칙대로 인원별 제외를 적용합니다.
-  요약 화면은 "종류 고르기(유형별 번호 칩) → 타일 제외" 2단계로 안내합니다.
-- **확장 #1 "새로운 시작" 계산기** — 입찰 시트($50 한도)의 다섯 줄(선 플레이어
-  입찰·상품 큐브·로비 직원·승점·준비 이동)을 개인용으로 계산해 주는 화면.
-- **부서 타일 탭** — 부서 타일 32개(16종 × 2) 중 인원수에 맞게 16/16/8/4개를
-  무작위 제외. 요약(제외 타일만) / 상세(16종 전체, 부서 종류별 섹션) 스위치.
-  타일은 자체 디자인 프레임(유형 컬러 넘버 플레이트 · 한/영 이름 · 효과 요약
-  바) 중앙에 원본 타일 이미지를 담은 위젯이며, 우측에 🗑×2 / 🗑×1 / ✓
-  상태 배지가 붙습니다.
-- **중립 디스크 탭** — 2/3인 게임의 세팅 9(중립 디스크 18/9개)를 시뮬레이션.
-  기부 차트(알파벳 정렬)와 도시 건설 부지(서부/중서부/남부/동부 지역 카드,
-  규칙서 지역 색상 배너)로 표시. 1인/4인은 배치 없음 안내.
-- **1인 도우미 탭** — 1인 게임(vs 앤드류) 라운드 진행 5단계, 앤드류 행동
-  해결, 이벤트, 점수 계산 요약.
-- **부서 도감** — 기본판/확장 탭으로 32종 부서를 타일과 같은 컴포넌트(넘버
-  플레이트 · 유형 괘선 · 원본 타일 이미지 · 효과 요약 바)와 규칙 설명으로 표시.
-- **아이콘 참조표** — 규칙서 20쪽 아이콘 47개를 개별 추출(투명 배경, 원본
-  상대 비율 유지)해 텍스트 설명과 함께 표시.
+| 화면 | 설명 |
+|---|---|
+| **게임 준비** | 1~2인 / 3인 / 4인 카드를 고르면 셋업이 한 번에 준비됩니다. 기본판 / 확장 포함 스위치. |
+| **부서 타일** | 32장(16종 × 2) 중 인원별 16 / 8 / 4장을 무작위 제외. 요약(제외 타일만) · 상세(16종 전체, 유형별 섹션) 전환, 다시 뽑기. 타일은 유형 컬러 플레이트 · 한/영 이름 · 원본 타일 이미지 · 효과 요약 바로 구성되고 🗑×2 / 🗑×1 / ✓ 배지가 붙습니다. |
+| **중립 디스크** | 2인 18개 / 3인 9개 세팅을 시뮬레이션. 기부 차트와 도시 건설 부지(서부·중서부·남부·동부)를 지역 색 배너로 표시. 1인·4인은 배치 없음 안내. |
+| **1인 도우미** | 앤드류 카네기를 상대하는 라운드 진행 5단계, 앤드류 행동 해결, 이벤트, 점수 계산 요약. |
+| **게임 룰 요약** | 라운드 진행 4단계 · 이벤트 · 부서 사용 등 핵심 규칙 요약과 초기 세팅 10단계 체크리스트 시트. |
+| **부서 도감** | 기본판 / 확장 탭으로 32종 부서를 타일 컴포넌트 + 규칙 설명으로 열람. |
+| **아이콘 참조표** | 규칙서 아이콘 47개를 투명 배경으로 추출해 설명과 함께 표시. |
+| **확장 #1 지원** | 새로운 부서(17~32): 유형별 8종 중 4종을 뽑아 32장을 구성한 뒤 기본 제외 규칙 적용 — "종류 고르기 → 타일 제외" 2단계 안내. 새로운 시작: 입찰 시트($50 한도) 계산기. |
 
 ## 디자인
 
 - Carbon Design System 구조 + 커스텀 팔레트
-  (`#EEF0F2 / #DADCDB / #C6C7C4 / #A2999E / #846A6A / #353B3C`)
-- 부서 유형 4색: 인사 `#846A6A` · 경영 `#8A7A4F` · 건설 `#6D7D62` ·
-  연구개발 `#7D6880` (타일 플레이트와 섹션 헤더 좌측 바에 공통 적용)
-- 서체: SUIT (Thin~ExtraBold)
-- 타일/아이콘 이미지: 한국어 규칙서 및 플레이어 에이드에서 추출
-- 세로 화면 고정, 바운스 스크롤, 표준 내비게이션 슬라이드 전환
+  `#EEF0F2` 배경 · `#DADCDB` 레이어 · `#C6C7C4` 보더 · `#A2999E` 헬퍼 · `#846A6A` 인터랙티브 · `#353B3C` 텍스트
+- 부서 유형 4색: 인사 `#846A6A` · 경영 `#8A7A4F` · 건설 `#6D7D62` · 연구개발 `#7D6880`
+- 서체: SUIT (Light · Regular · Bold · ExtraBold)
+- 세로 화면 고정, 바운스 스크롤, 상단 바 없이 모서리 고정 아이콘
 
 ## 데이터 출처
 
 - 부서 타일 제외 규칙: 규칙서 4쪽 (세팅 4)
 - 중립 디스크 배치: 규칙서 4쪽 (세팅 9) + `CARNEGIE_SETUP_RANDOMIZER__V1.xlsx`
-  (1인 게임 카드 20장의 도시/기부 데이터)
 - 1인 게임 규칙: 규칙서 18–19쪽
-- 확장 #1(새로운 부서·새로운 시작): 확장 룰북(Carnegie: Expansion #1) 1–3쪽
+- 확장 #1 (새로운 부서 · 새로운 시작): 확장 룰북 1–3쪽
 
 ## 프로젝트 구조
 
 ```
 lib/
-  main.dart         # 앱/테마, 게임 준비, 결과(부서 타일·중립 디스크·1인 도우미 탭)
-  carbon.dart       # 디자인 토큰 + 공용 위젯 (버튼, 태그, 탭, 스위처)
-  dept_tile.dart    # 부서 타일 컴포넌트 (넘버 플레이트·괘선·엠블럼·효과 바)
-  departments.dart  # 부서 32종(기본 16 + 확장 16) 데이터, 기본/확장 뽑기 로직
-  new_beginning.dart# 확장 "새로운 시작" 입찰 시트 계산기
-  setup9.dart       # 중립 디스크(세팅 9) 카드 데이터·배치 로직, 지역별 도시
-  reference.dart    # 부서 도감, 아이콘 참조표
+  main.dart          # 앱/테마, 게임 준비, 결과(부서 타일·중립 디스크·1인 도우미 탭)
+  carbon.dart        # 디자인 토큰 + 공용 위젯
+  dept_tile.dart     # 부서 타일 컴포넌트 (넘버 플레이트·괘선·엠블럼·효과 바)
+  departments.dart   # 부서 32종 데이터, 기본/확장 뽑기 로직
+  new_beginning.dart # 확장 "새로운 시작" 입찰 시트 계산기
+  setup9.dart        # 중립 디스크(세팅 9) 카드 데이터·배치 로직
+  reference.dart     # 부서 도감, 아이콘 참조표
+  rules.dart         # 게임 룰 요약
 assets/
-  departments/      # 부서 타일 이미지 32종 (기본 16 + 확장 16, 투명 배경)
-  reficons/         # 아이콘 참조표 아이콘 47개
-  pcount/           # 인원(1~4인) 아이콘
-  icon/             # 앱 런처 아이콘 원본
-  fonts/            # SUIT 서체
+  departments/       # 부서 타일 이미지 32종 (WebP, 투명 배경)
+  reficons/          # 아이콘 참조표 47개 (WebP)
+  pcount/            # 인원 아이콘 (WebP)
+  fonts/             # SUIT 서체
+web/_headers         # COOP/COEP — wasm 멀티스레드 렌더링용
+wrangler.jsonc       # Cloudflare Workers 정적 에셋 배포 설정
 ```
 
-개발 관련 상세(빌드 주의사항, 에셋 파이프라인, 디자인 규칙)는
-[CLAUDE.md](CLAUDE.md)를 참고하세요.
+빌드 주의사항, 에셋 파이프라인, 디자인 규칙 등 개발 상세는 [CLAUDE.md](CLAUDE.md)를 참고하세요.
 
 ## 실행 / 빌드
 
 ```sh
 flutter pub get
-flutter run -d chrome    # 웹
-flutter run              # 연결된 Android/iOS 기기
-flutter build web
-flutter build apk --release
+flutter run -d chrome          # 웹
+flutter run                    # 연결된 Android/iOS 기기
+flutter build apk --release    # Android
 ```
 
-### 주의: Windows 한글 경로 문제
+### 웹 배포 (Cloudflare Workers)
 
-프로젝트가 한글 경로(`바탕 화면`) 아래에 있으면 Flutter의 셰이더 컴파일러
-(impellerc)가 크래시합니다. ASCII 드라이브로 매핑한 뒤 빌드하세요:
+`main` 브랜치에 푸시하면 GitHub Actions가 자동으로 빌드·배포합니다
+(`.github/workflows/deploy-web.yml`). 수동 배포는:
 
-```bat
-subst X: "C:\Users\wow32\OneDrive\바탕 화면\canegie-department"
-cd /d X:\carnegie_departments
-flutter build apk --release
+```sh
+flutter build web --wasm --release --base-href /
+npx wrangler deploy
 ```
-
-> 이 저장소의 이미지 에셋은 카네기 규칙서(코리아보드게임즈/Quined Games)에서
-> 추출한 것으로, 개인적인 용도로만 사용하세요.
