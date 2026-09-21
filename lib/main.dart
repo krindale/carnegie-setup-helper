@@ -122,6 +122,13 @@ class _SetupScreenState extends State<SetupScreen> {
                         builder: (context, constraints) {
                           final header = <Widget>[
                             const SizedBox(height: CarbonSpacing.s7),
+                            // 앱 정체(카네기 셋업 도우미)를 첫 화면에서 드러내는
+                            // 오버라인 (시안 A, docs/mockups/home-title.html).
+                            const Text(
+                              'CARNEGIE · 카네기 셋업 도우미',
+                              style: CarbonText.helperText01,
+                            ),
+                            const SizedBox(height: CarbonSpacing.s3),
                             Text('게임 준비', style: CarbonText.heading05),
                             const SizedBox(height: CarbonSpacing.s4),
                             Text(
@@ -173,7 +180,9 @@ class _SetupScreenState extends State<SetupScreen> {
                               ),
                             ),
                           );
-                          if (constraints.maxHeight < 620) {
+                          // 680 미만이면 카드 최소 높이(약 128px)가 안 나와
+                          // 넘치므로 스크롤 목록으로 전환한다.
+                          if (constraints.maxHeight < 680) {
                             return SingleChildScrollView(
                               padding: const EdgeInsets.all(CarbonSpacing.s5),
                               child: Column(
