@@ -180,7 +180,9 @@ class _SetupScreenState extends State<SetupScreen> {
                               ),
                             ),
                           );
-                          if (constraints.maxHeight < 620) {
+                          // 680 미만이면 카드 최소 높이(약 128px)가 안 나와
+                          // 넘치므로 스크롤 목록으로 전환한다.
+                          if (constraints.maxHeight < 680) {
                             return SingleChildScrollView(
                               padding: const EdgeInsets.all(CarbonSpacing.s5),
                               child: Column(
