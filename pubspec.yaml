@@ -38,8 +38,7 @@ flutter:
   fonts:
     - family: SUIT
       fonts:
-        - asset: assets/fonts/SUIT-Thin.otf
-          weight: 100
+        # SUIT-Thin(100)은 코드에서 미사용 — 번들 크기 절약을 위해 등록 해제 (파일은 보존)
         - asset: assets/fonts/SUIT-Light.otf
           weight: 300
         - asset: assets/fonts/SUIT-Regular.otf

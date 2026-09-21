@@ -43,7 +43,7 @@ class Department {
 
   /// 규칙서 16–17쪽(1~16), 확장 룰북 2–3쪽(17~32)에서 추출한 원본 타일 이미지.
   String get image =>
-      'assets/departments/dept_${number.toString().padLeft(2, '0')}.png';
+      'assets/departments/dept_${number.toString().padLeft(2, '0')}.webp';
 }
 
 const departments = <Department>[
