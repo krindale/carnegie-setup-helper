@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'carbon.dart';
 import 'departments.dart';
 import 'dept_tile.dart';
+import 'l10n.dart';
 
 // ---------------------------------------------------------------------------
 // 게임 룰 요약 화면 — 근거: 규칙서 6–13쪽 (라운드 진행 7쪽, 이벤트 8쪽,
@@ -30,7 +31,7 @@ class RulesSummaryScreen extends StatelessWidget {
                     actions: [
                       TopIconButton(
                         icon: Icons.checklist,
-                        tooltip: '초기 세팅',
+                        tooltip: tr('초기 세팅', 'Setup Checklist'),
                         onTap: () => showModalBottomSheet<void>(
                           context: context,
                           backgroundColor: CarbonColors.background,
@@ -51,120 +52,190 @@ class RulesSummaryScreen extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.all(CarbonSpacing.s5),
                     children: [
-                      Text('게임 룰 요약', style: CarbonText.heading05),
+                      Text(
+                        tr('게임 룰 요약', 'Rules Summary'),
+                        style: CarbonText.heading05,
+                      ),
                       const SizedBox(height: CarbonSpacing.s3),
                       Text(
-                        '20라운드 동안 회사를 운영해 가장 높은 승점을 얻는 '
-                        '플레이어가 승리합니다.',
+                        tr(
+                          '20라운드 동안 회사를 운영해 가장 높은 승점을 얻는 '
+                              '플레이어가 승리합니다.',
+                          'Over 20 rounds, players run their Companies; the '
+                              'player with the most VP at the end of the game '
+                              'wins.',
+                        ),
                         style: CarbonText.body02.copyWith(
                           color: CarbonColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: CarbonSpacing.s5),
-                      const _SectionHeader(title: '라운드 진행', subtitle: '4단계'),
+                      _SectionHeader(
+                        title: tr('라운드 진행', 'Round Sequence'),
+                        subtitle: tr('4단계', '4 parts'),
+                      ),
                       _card([
                         _numRow(
                           1,
-                          '타임라인 선택',
-                          '시작 플레이어가 인사·경영·건설·연구개발 중 하나를 골라 타임라인 마커를 놓습니다.',
+                          tr('타임라인 선택', 'Select Timeline'),
+                          tr(
+                            '시작 플레이어가 인사·경영·건설·연구개발 중 하나를 골라 타임라인 마커를 놓습니다.',
+                            "The first player selects Human Resources, Management, Construction, or R&D and places the Timeline marker to the right of that action's marker.",
+                          ),
                         ),
                         _numRow(
                           2,
-                          '이벤트',
-                          '마커가 놓인 칸의 이벤트(수입 또는 기부)가 모든 플레이어에게 발생합니다.',
+                          tr('이벤트', 'Events'),
+                          tr(
+                            '마커가 놓인 칸의 이벤트(수입 또는 기부)가 모든 플레이어에게 발생합니다.',
+                            'Placing the Timeline marker triggers an event (income or donation) for all players.',
+                          ),
                         ),
                         _numRow(
                           3,
-                          '부서 사용',
-                          '시작 플레이어부터 시계 방향으로, 선택된 행동과 같은 종류의 자기 부서들을 사용합니다. 각 부서는 활성화된 직원 1명당 1번씩 쓸 수 있습니다.',
+                          tr('부서 사용', 'Use Departments'),
+                          tr(
+                            '시작 플레이어부터 시계 방향으로, 선택된 행동과 같은 종류의 자기 부서들을 사용합니다. 각 부서는 활성화된 직원 1명당 1번씩 쓸 수 있습니다.',
+                            'Starting with the first player and going clockwise, players use their Departments that correspond to the chosen action type. Each Department may be used once for each active employee in it.',
+                          ),
                         ),
                         _numRow(
                           4,
-                          '직원 활성화·라운드 종료',
-                          '사무공간에 표시된 비용을 내고 직원을 활성화한 뒤, 행동 마커를 오른쪽으로 1칸 전진시킵니다.',
+                          tr(
+                            '직원 활성화·라운드 종료',
+                            'Activate Employees & End of Round',
+                          ),
+                          tr(
+                            '사무공간에 표시된 비용을 내고 직원을 활성화한 뒤, 행동 마커를 오른쪽으로 1칸 전진시킵니다.',
+                            'Pay the cost indicated on the Workstation to activate employees, then move the action marker one space to the right.',
+                          ),
                         ),
                       ]),
-                      const _SectionHeader(title: '이벤트'),
+                      _SectionHeader(title: tr('이벤트', 'Events')),
                       _card([
                         _iconRow(
                           Icons.payments_outlined,
-                          '수입 받기',
-                          '활성화된 파견 지역의 직원을 원하는 만큼 로비로 복귀시키고, 복귀한 직원마다 운송 수입을 받습니다. 1명 이상 복귀시켰다면 지어 둔 프로젝트 수입도 받습니다(라운드당 1번).',
+                          tr('수입 받기', 'Take Income'),
+                          tr(
+                            '활성화된 파견 지역의 직원을 원하는 만큼 로비로 복귀시키고, 복귀한 직원마다 운송 수입을 받습니다. 1명 이상 복귀시켰다면 지어 둔 프로젝트 수입도 받습니다(라운드당 1번).',
+                            'Return 1 or more of your employees from the active Mission area to your Lobby; each one generates transport income. If you returned at least one, you also receive project income from your built projects (once per round).',
+                          ),
                         ),
                         _iconRow(
                           Icons.volunteer_activism_outlined,
-                          '기부하기',
-                          '기부 차트의 빈칸에 디스크를 놓습니다. 첫 기부는 \$5이고, 이후 기부할 때마다 \$5씩 비싸집니다(\$10, \$15…).',
+                          tr('기부하기', 'Make a Donation'),
+                          tr(
+                            '기부 차트의 빈칸에 디스크를 놓습니다. 첫 기부는 \$5이고, 이후 기부할 때마다 \$5씩 비싸집니다(\$10, \$15…).',
+                            'Place a disk on an unoccupied space of the donation chart. Your first donation costs \$5; each subsequent donation costs \$5 more (\$10, \$15…).',
+                          ),
                         ),
                       ]),
-                      const _SectionHeader(title: '4가지 행동'),
+                      _SectionHeader(title: tr('4가지 행동', 'The Four Actions')),
                       _card([
                         _typeRow(
                           DeptType.hr,
-                          '활성화된 인사 직원 1명당 직원 이동 3회(항상 최소 3회). 가로·세로로만 이동하며, 활성화된 직원은 이동하면 비활성화됩니다.',
+                          tr(
+                            '활성화된 인사 직원 1명당 직원 이동 3회(항상 최소 3회). 가로·세로로만 이동하며, 활성화된 직원은 이동하면 비활성화됩니다.',
+                            'Each active employee in Human Resources provides 3 moves (always at least 3). Moves are orthogonal only; an active employee that moves becomes inactive.',
+                          ),
                         ),
                         _typeRow(
                           DeptType.management,
-                          '"상업과 재무"로 돈·상품을 얻고, "전략 기획"으로 새 부서를 조직합니다(큐브 2개, 직원이 있는 빈칸이면 1개).',
+                          tr(
+                            '"상업과 재무"로 돈·상품을 얻고, "전략 기획"으로 새 부서를 조직합니다(큐브 2개, 직원이 있는 빈칸이면 1개).',
+                            '"Commerce and Finance" provides money or goods; "Strategic Planning" builds new Departments (2 goods cubes, or 1 on a free space that already contains an employee).',
+                          ),
                         ),
                         _typeRow(
                           DeptType.construction,
-                          '직원 1명을 파견 보내고 큐브 1~2개를 지불해 그 지역에 프로젝트를 짓습니다. 소도시에 지으면 즉시 운송 수입을 받습니다.',
+                          tr(
+                            '직원 1명을 파견 보내고 큐브 1~2개를 지불해 그 지역에 프로젝트를 짓습니다. 소도시에 지으면 즉시 운송 수입을 받습니다.',
+                            'Send an employee on a Mission and pay 1-2 goods cubes to build a project in that region. Building in certain small cities gives immediate transport income.',
+                          ),
                         ),
                         _typeRow(
                           DeptType.rnd,
-                          '활성화된 직원마다 연구 점수를 얻어 프로젝트 탭이나 운송 트랙을 전진시킵니다. 남은 점수는 차례가 끝나면 사라집니다.',
+                          tr(
+                            '활성화된 직원마다 연구 점수를 얻어 프로젝트 탭이나 운송 트랙을 전진시킵니다. 남은 점수는 차례가 끝나면 사라집니다.',
+                            'Each active employee provides study points to advance project tabs or transport disks. Unused study points are lost at the end of the turn.',
+                          ),
                         ),
                       ]),
-                      const _SectionHeader(title: '꼭 기억할 것'),
+                      _SectionHeader(title: tr('꼭 기억할 것', 'Remember')),
                       _card([
                         _iconRow(
                           Icons.paid_outlined,
                           null,
-                          '직원 활성화 비용은 사무공간 아래 금액이며, 라운드 종료 시에만 활성화할 수 있습니다.',
+                          tr(
+                            '직원 활성화 비용은 사무공간 아래 금액이며, 라운드 종료 시에만 활성화할 수 있습니다.',
+                            'The activation cost is the amount shown under the Workstation; employees may only be activated at the end of a round.',
+                          ),
                         ),
                         _iconRow(
                           Icons.outbound_outlined,
                           null,
-                          '파견 중인 직원은 활성화된 것으로 치지 않습니다.',
+                          tr(
+                            '파견 중인 직원은 활성화된 것으로 치지 않습니다.',
+                            'Employees on Missions are not considered to be active.',
+                          ),
                         ),
                         _iconRow(
                           Icons.currency_exchange,
                           null,
-                          '상품 큐브는 언제든 개당 \$1에 팔 수 있습니다.',
+                          tr(
+                            '상품 큐브는 언제든 개당 \$1에 팔 수 있습니다.',
+                            'Goods cubes may be sold to the supply at any time for \$1 each.',
+                          ),
                         ),
                         _iconRow(
                           Icons.swap_horiz,
                           null,
-                          '(3·4인) 행동 선택 타일로 선택된 것과 다른 행동을 게임당 1번 할 수 있습니다. 쓰지 않으면 종료 시 3점입니다.',
+                          tr(
+                            '(3·4인) 행동 선택 타일로 선택된 것과 다른 행동을 게임당 1번 할 수 있습니다. 쓰지 않으면 종료 시 3점입니다.',
+                            '(3-4 players) An Action Choice tile lets you select an action type different from the one chosen, once per game. An unused tile is worth 3 VP at the end of the game.',
+                          ),
                         ),
                       ]),
-                      const _SectionHeader(title: '게임 종료 승점'),
+                      _SectionHeader(
+                        title: tr('게임 종료 승점', 'End-of-Game Scoring'),
+                      ),
                       _card([
                         _iconRow(
                           Icons.person,
                           null,
-                          '활성화된 직원 1명당 1점 (파견 나간 직원과 영구 직원은 제외).',
+                          tr(
+                            '활성화된 직원 1명당 1점 (파견 나간 직원과 영구 직원은 제외).',
+                            '1 VP per active employee (not counting employees on Missions or the permanent employee).',
+                          ),
                         ),
                         _iconRow(
                           Icons.grid_view,
                           null,
-                          '조직한 부서당 2~3점 (회사판 최상단 행에 놓인 부서는 3점).',
+                          tr(
+                            '조직한 부서당 2~3점 (회사판 최상단 행에 놓인 부서는 3점).',
+                            "2-3 VP per Department built (3 VP in the Company board's topmost row).",
+                          ),
                         ),
                         _iconRow(
                           Icons.trending_up,
                           null,
-                          '프로젝트 탭 전진 — 주거 최대 6점 · 상업 9점 · 산업 12점 · 사회 기반시설 15점.',
+                          tr(
+                            '프로젝트 탭 전진 — 주거 최대 6점 · 상업 9점 · 산업 12점 · 사회 기반시설 15점.',
+                            'Project tabs — up to 6 VP for Housing · 9 Commerce · 12 Industry · 15 Public Infrastructure.',
+                          ),
                         ),
                         _iconRow(
                           Icons.route_outlined,
                           null,
-                          '대도시(뉴욕·시카고·뉴올리언스·샌프란시스코) 연결 최대 36점, 지은 프로젝트마다 도시별 0~3점.',
+                          tr(
+                            '대도시(뉴욕·시카고·뉴올리언스·샌프란시스코) 연결 최대 36점, 지은 프로젝트마다 도시별 0~3점.',
+                            'Connections between major cities (New York, Chicago, New Orleans, San Francisco) up to 36 VP; 0-3 VP per project as shown for each city.',
+                          ),
                         ),
                         _iconRow(
                           Icons.volunteer_activism_outlined,
                           null,
-                          '기부당 최대 12점.',
+                          tr('기부당 최대 12점.', 'Up to 12 VP per donation.'),
                         ),
                       ]),
                       const SizedBox(height: CarbonSpacing.s7),
@@ -229,10 +300,12 @@ class RulesSummaryScreen extends StatelessWidget {
   Widget _typeRow(DeptType type, String text) {
     return _row(
       leading: Container(
+        // 영문 유형명은 길이가 제각각이라 고정 폭으로 본문 시작선을 맞춘다.
+        width: isEn ? 100 : null,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         color: deptTypeColorOf(type),
         child: Text(
-          type == DeptType.rnd ? '연구\n개발' : type.ko,
+          isEn ? type.en : (type == DeptType.rnd ? '연구\n개발' : type.ko),
           textAlign: TextAlign.center,
           style: CarbonText.label01.copyWith(
             color: CarbonColors.textOnColor,
@@ -291,6 +364,22 @@ class _SetupGuideSheet extends StatelessWidget {
     '시계로: 직원 최대 6회 이동 후 활성화',
   ];
 
+  /// 영문 규칙서 4–5쪽 Game Setup 2~11번 요약.
+  static const _stepsEn = <String>[
+    '4 random Timeline tiles + Start and End tiles',
+    '4 action markers on their starting positions',
+    'Remove Department tiles\n2P 16 · 3P 8 · 4P 4 (done by this app)',
+    'Each player: 4 goods cubes + \$12 · Company board + 4 project tabs\n'
+        '10 employees (5 standing, 5 in Lobby) · 5 set aside',
+    'Each player\'s disks: "0" on the score track · first space of the 4 '
+        'transportation tracks\n1 each on Housing, Commerce, Industry tabs',
+    'Choose the first player',
+    'Action Choice tiles\n4P everyone · 3P third player only · 2P none',
+    'Neutral disks\n2P 18 · 3P 9 · 4P skip (done by this app)',
+    'Counter-clockwise: 1 Housing disk + choose a first Department tile',
+    'Clockwise: move employees up to 6 steps, then activate',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -307,7 +396,12 @@ class _SetupGuideSheet extends StatelessWidget {
                   color: CarbonColors.textSecondary,
                 ),
                 const SizedBox(width: CarbonSpacing.s3),
-                Expanded(child: Text('초기 세팅', style: CarbonText.heading03)),
+                Expanded(
+                  child: Text(
+                    tr('초기 세팅', 'Setup Checklist'),
+                    style: CarbonText.heading03,
+                  ),
+                ),
                 InkWell(
                   onTap: () => Navigator.of(context).pop(),
                   child: const Padding(
@@ -322,7 +416,7 @@ class _SetupGuideSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: CarbonSpacing.s5),
-            for (final (i, step) in _steps.indexed)
+            for (final (i, step) in (isEn ? _stepsEn : _steps).indexed)
               Padding(
                 padding: const EdgeInsets.only(bottom: CarbonSpacing.s4),
                 child: Row(

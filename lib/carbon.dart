@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
+
 /// IBM Carbon Design System — White (light) theme tokens.
 /// https://carbondesignsystem.com/elements/color/tokens/
 abstract final class CarbonColors {
@@ -283,7 +285,7 @@ class TopBar extends StatelessWidget {
           if (onBack != null)
             TopIconButton(
               icon: Icons.arrow_back,
-              tooltip: '뒤로',
+              tooltip: tr('뒤로', 'Back'),
               onTap: onBack!,
             ),
           const Spacer(),
@@ -301,16 +303,20 @@ class CarbonContentSwitcher extends StatelessWidget {
     required this.labels,
     required this.selected,
     required this.onChanged,
+    this.dense = false,
   });
 
   final List<String> labels;
   final int selected;
   final ValueChanged<int> onChanged;
 
+  /// 작은 크기(높이 24, 12px 글자) — 오버라인 같은 한 줄 텍스트 옆에 둘 때.
+  final bool dense;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 40,
+      height: dense ? 24 : 40,
       decoration: BoxDecoration(
         border: Border.all(color: CarbonColors.buttonSecondary),
       ),
@@ -321,8 +327,8 @@ class CarbonContentSwitcher extends StatelessWidget {
             InkWell(
               onTap: () => onChanged(i),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: CarbonSpacing.s5,
+                padding: EdgeInsets.symmetric(
+                  horizontal: dense ? CarbonSpacing.s3 : CarbonSpacing.s5,
                 ),
                 alignment: Alignment.center,
                 color: i == selected
@@ -330,14 +336,15 @@ class CarbonContentSwitcher extends StatelessWidget {
                     : CarbonColors.background,
                 child: Text(
                   label,
-                  style: CarbonText.body01.copyWith(
-                    color: i == selected
-                        ? CarbonColors.textOnColor
-                        : CarbonColors.textPrimary,
-                    fontWeight: i == selected
-                        ? FontWeight.w700
-                        : FontWeight.w400,
-                  ),
+                  style: (dense ? CarbonText.label01 : CarbonText.body01)
+                      .copyWith(
+                        color: i == selected
+                            ? CarbonColors.textOnColor
+                            : CarbonColors.textPrimary,
+                        fontWeight: i == selected
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                      ),
                 ),
               ),
             ),
