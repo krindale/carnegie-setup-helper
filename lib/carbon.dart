@@ -304,6 +304,8 @@ class CarbonContentSwitcher extends StatelessWidget {
     required this.selected,
     required this.onChanged,
     this.dense = false,
+    this.height,
+    this.segmentWidth,
   });
 
   final List<String> labels;
@@ -313,10 +315,16 @@ class CarbonContentSwitcher extends StatelessWidget {
   /// 작은 크기(높이 24, 12px 글자) — 오버라인 같은 한 줄 텍스트 옆에 둘 때.
   final bool dense;
 
+  /// 높이 직접 지정 (없으면 기본 40, dense 24).
+  final double? height;
+
+  /// 칸 폭 고정 (지정 시 글자는 칸 가운데). 없으면 글자 폭 + 좌우 여백.
+  final double? segmentWidth;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: dense ? 24 : 40,
+      height: height ?? (dense ? 24 : 40),
       decoration: BoxDecoration(
         border: Border.all(color: CarbonColors.buttonSecondary),
       ),
@@ -327,8 +335,13 @@ class CarbonContentSwitcher extends StatelessWidget {
             InkWell(
               onTap: () => onChanged(i),
               child: Container(
+                width: segmentWidth,
                 padding: EdgeInsets.symmetric(
-                  horizontal: dense ? CarbonSpacing.s3 : CarbonSpacing.s5,
+                  horizontal: segmentWidth != null
+                      ? 0
+                      : dense
+                      ? CarbonSpacing.s3
+                      : CarbonSpacing.s5,
                 ),
                 alignment: Alignment.center,
                 color: i == selected
