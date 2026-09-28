@@ -304,7 +304,7 @@ class RulesSummaryScreen extends StatelessWidget {
         width: isEn ? 100 : null,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         color: deptTypeColorOf(type),
-        child: Text(
+        child: WordSafeText(
           isEn ? type.en : (type == DeptType.rnd ? '연구\n개발' : type.ko),
           textAlign: TextAlign.center,
           style: CarbonText.label01.copyWith(

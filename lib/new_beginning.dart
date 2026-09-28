@@ -370,7 +370,9 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
               ),
               child: Row(
                 children: [
-                  Expanded(child: Text(row.$1, style: CarbonText.body01)),
+                  Expanded(
+                    child: WordSafeText(row.$1, style: CarbonText.body01),
+                  ),
                   Text(
                     row.$2,
                     style: CarbonText.body01.copyWith(

@@ -398,3 +398,62 @@ class CarbonTag extends StatelessWidget {
     );
   }
 }
+
+/// 영문 한 단어가 칸보다 넓으면(예: 좁은 칸의 "Management") 단어 중간에서
+/// 줄이 끊기지 않도록 그만큼만 글자를 줄인다. 그 외에는 일반 [Text]와 같다.
+/// 한글 어절은 음절 단위 줄바꿈이 자연스러우므로 검사하지 않는다.
+class WordSafeText extends StatelessWidget {
+  const WordSafeText(this.text, {super.key, this.style, this.textAlign});
+
+  final String text;
+  final TextStyle? style;
+  final TextAlign? textAlign;
+
+  static final _latin = RegExp(r'[A-Za-z]');
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final base = DefaultTextStyle.of(context).style.merge(style);
+        final words = [
+          for (final w in text.split(RegExp(r'\s+')))
+            if (_latin.hasMatch(w)) w,
+        ];
+        double longestAt(double fontSize) {
+          var longest = 0.0;
+          for (final word in words) {
+            final tp = TextPainter(
+              text: TextSpan(
+                text: word,
+                style: base.copyWith(fontSize: fontSize),
+              ),
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+            )..layout();
+            if (tp.width > longest) longest = tp.width;
+          }
+          return longest;
+        }
+
+        final max = constraints.maxWidth;
+        var size = base.fontSize!;
+        var longest = words.isEmpty ? 0.0 : longestAt(size);
+        if (!max.isFinite || longest <= max) {
+          return Text(text, textAlign: textAlign, style: style);
+        }
+        // 글리프 폭은 크기에 정확히 비례하지 않으므로, 줄인 뒤 다시 재서
+        // 실제로 들어갈 때까지 조금씩 더 줄인다.
+        size *= max / longest;
+        for (var i = 0; i < 8 && longestAt(size) > max; i++) {
+          size *= 0.97;
+        }
+        return Text(
+          text,
+          textAlign: textAlign,
+          style: base.copyWith(fontSize: size),
+        );
+      },
+    );
+  }
+}

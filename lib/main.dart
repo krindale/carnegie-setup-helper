@@ -224,18 +224,19 @@ class _SetupScreenState extends State<SetupScreen> {
                             const SizedBox(height: CarbonSpacing.s5),
                             // 기본판/확장 스위치는 서브 타이틀 아래에 둔다
                             // (사용자 확정).
-                            Row(
-                              children: [
-                                CarbonContentSwitcher(
-                                  labels: [
-                                    tr('기본판', 'Base Game'),
-                                    tr('확장 포함', 'With Expansion'),
-                                  ],
-                                  selected: _expansion ? 1 : 0,
-                                  onChanged: (i) =>
-                                      setState(() => _expansion = i == 1),
-                                ),
-                              ],
+                            // 좁은 폭·큰 글자에서 넘치면 폭에 맞게 축소한다.
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: CarbonContentSwitcher(
+                                labels: [
+                                  tr('기본판', 'Base Game'),
+                                  tr('확장 포함', 'With Expansion'),
+                                ],
+                                selected: _expansion ? 1 : 0,
+                                onChanged: (i) =>
+                                    setState(() => _expansion = i == 1),
+                              ),
                             ),
                             // 모드 설명은 스위치와 인원 카드 사이 중간에,
                             // 고정 높이로 자리를 잡아 두고 문구만 바꿔서
@@ -529,28 +530,36 @@ class _ResultScreenState extends State<ResultScreen> {
                       bottom: BorderSide(color: CarbonColors.borderSubtle),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      _TabButton(
-                        label: tr('부서 타일', 'Departments'),
-                        icon: Icons.grid_view,
-                        selected: _tab == 0,
-                        onTap: () => setState(() => _tab = 0),
-                      ),
-                      _TabButton(
-                        label: tr('중립 디스크', 'Disks'),
-                        icon: Icons.circle,
-                        selected: _tab == 1,
-                        onTap: () => setState(() => _tab = 1),
-                      ),
-                      if (_result.playerCount == 2)
+                  // 줄(하단 보더)은 전체 폭을 유지하고 탭은 왼쪽 정렬.
+                  alignment: Alignment.centerLeft,
+                  // 탭 3개가 폰 폭보다 넓으면(360px 1-2인 등) 줄 전체를 폭에
+                  // 맞게 축소한다. 들어가면 그대로.
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
                         _TabButton(
-                          label: tr('1인 도우미', 'Solo'),
-                          icon: Icons.person_outline,
-                          selected: _tab == 2,
-                          onTap: () => setState(() => _tab = 2),
+                          label: tr('부서 타일', 'Departments'),
+                          icon: Icons.grid_view,
+                          selected: _tab == 0,
+                          onTap: () => setState(() => _tab = 0),
                         ),
-                    ],
+                        _TabButton(
+                          label: tr('중립 디스크', 'Disks'),
+                          icon: Icons.circle,
+                          selected: _tab == 1,
+                          onTap: () => setState(() => _tab = 1),
+                        ),
+                        if (_result.playerCount == 2)
+                          _TabButton(
+                            label: tr('1인 도우미', 'Solo'),
+                            icon: Icons.person_outline,
+                            selected: _tab == 2,
+                            onTap: () => setState(() => _tab = 2),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
@@ -1273,7 +1282,9 @@ class _SummaryBar extends StatelessWidget {
                 children: [
                   Icon(icon, size: 14, color: CarbonColors.textSecondary),
                   const SizedBox(width: CarbonSpacing.s2),
-                  Expanded(child: Text(label, style: CarbonText.label01)),
+                  Expanded(
+                    child: WordSafeText(label, style: CarbonText.label01),
+                  ),
                 ],
               ),
               const SizedBox(height: CarbonSpacing.s2),
@@ -1364,7 +1375,7 @@ class _KindCleanupCard extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: isEn ? 104 : 64,
-                    child: Text(
+                    child: WordSafeText(
                       type.label,
                       style: CarbonText.heading01.copyWith(
                         color: deptTypeColorOf(type),
