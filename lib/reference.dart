@@ -56,19 +56,46 @@ class _DeptCatalogScreenState extends State<DeptCatalogScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(CarbonSpacing.s5),
                     children: [
+                      // 제목·스위치는 항상 한 줄 (사용자 확정). 영문은 짧은 표기
+                      // (Departments / Base | Expansion)를 쓰고, 원래 크기로
+                      // 자리가 모자라면 "Depts."로 줄인다 (사용자 확정). 그래도
+                      // 넘치는 극단적인 폭에서는 제목만 폭에 맞게 축소한다.
                       Row(
                         children: [
                           Expanded(
-                            child: Text(
-                              tr('부서 도감', 'Department Guide'),
-                              style: CarbonText.heading05,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                var title = tr('부서 도감', 'Departments');
+                                if (isEn) {
+                                  final full = TextPainter(
+                                    text: TextSpan(
+                                      text: title,
+                                      style: CarbonText.heading05,
+                                    ),
+                                    textDirection: Directionality.of(context),
+                                    textScaler: MediaQuery.textScalerOf(
+                                      context,
+                                    ),
+                                  )..layout();
+                                  if (full.width > constraints.maxWidth) {
+                                    title = 'Depts.';
+                                  }
+                                }
+                                return FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    title,
+                                    maxLines: 1,
+                                    style: CarbonText.heading05,
+                                  ),
+                                );
+                              },
                             ),
                           ),
+                          const SizedBox(width: CarbonSpacing.s3),
                           CarbonContentSwitcher(
-                            labels: [
-                              tr('기본판', 'Base Game'),
-                              tr('확장', 'Expansion'),
-                            ],
+                            labels: [tr('기본판', 'Base'), tr('확장', 'Expansion')],
                             selected: _tab,
                             onChanged: (i) => setState(() => _tab = i),
                           ),
@@ -318,7 +345,7 @@ class _CatalogRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    WordSafeText(
                       dept.name,
                       style: CarbonText.heading03.copyWith(
                         fontWeight: FontWeight.w700,

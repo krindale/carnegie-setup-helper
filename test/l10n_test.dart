@@ -274,7 +274,7 @@ void main() {
         await tester.tap(find.text(tr('확장', 'Expansion')));
         await tester.pumpAndSettle();
         expect(tester.getTopLeft(header), before);
-        await tester.tap(find.text(tr('기본판', 'Base Game')));
+        await tester.tap(find.text(tr('기본판', 'Base')));
         await tester.pumpAndSettle();
         expect(tester.getTopLeft(header), before);
       });
