@@ -116,6 +116,18 @@ class SetupScreen extends StatefulWidget {
 /// 15px 아래 (사용자 확정: 아이콘과 스위치 간격 15).
 const _homeHeaderTop = 54.0;
 
+/// 한영 스위치 높이 (dense 24 + 5, 사용자 확정). 오버라인 줄 높이도 같다.
+const _langSwitchHeight = 29.0;
+
+/// 한영 스위치 칸 폭과 전체 폭(두 칸 + 테두리 1px×2) — 기존 69px과
+/// 1.5배 104px의 중간 86px (사용자 확정).
+const _langSegmentWidth = 42.0;
+const _langSwitchWidth = _langSegmentWidth * 2 + 2;
+
+/// 본문 오른쪽 끝에서 스위치 오른쪽 끝까지 — 아이콘 참조표 아이콘 글리프
+/// 끝선(44px 버튼 안 22px 글리프 → 버튼 끝에서 13px)에 맞춘다.
+const _langSwitchInset = 13.0;
+
 class _SetupScreenState extends State<SetupScreen> {
   /// 확장 #1 "새로운 부서" 포함 여부 (세션 한정, 기본 꺼짐).
   bool _expansion = false;
@@ -159,19 +171,31 @@ class _SetupScreenState extends State<SetupScreen> {
                             ),
                             // 앱 정체(카네기 셋업 도우미)를 첫 화면에서 드러내는
                             // 오버라인 (시안 A, docs/mockups/home-title.html).
-                            // 오버라인 줄 높이는 한영 스위치(24px)에 맞춘다.
+                            // 오버라인 줄 높이는 한영 스위치(_langSwitchHeight)에 맞춘다.
                             // 스위치 자체는 아이콘과 끝선을 맞추려고 아래
                             // Stack에서 화면 기준으로 배치한다.
+                            // 오른쪽은 스위치 자리(+ 간격 8)를 비워 두고, 좁은
+                            // 폭에서 글자가 스위치에 닿을 때만 축소한다.
                             SizedBox(
-                              height: 24,
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  tr(
-                                    'CARNEGIE · 카네기 셋업 도우미',
-                                    'CARNEGIE · SETUP HELPER',
+                              height: _langSwitchHeight,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  right:
+                                      _langSwitchInset + _langSwitchWidth + 8,
+                                ),
+                                child: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      tr(
+                                        'CARNEGIE · 카네기 셋업 도우미',
+                                        'CARNEGIE · SETUP HELPER',
+                                      ),
+                                      maxLines: 1,
+                                      style: CarbonText.helperText01,
+                                    ),
                                   ),
-                                  style: CarbonText.helperText01,
                                 ),
                               ),
                             ),
@@ -341,9 +365,11 @@ class _SetupScreenState extends State<SetupScreen> {
                 // 뒤에 둬서 터치가 스위치로 간다.
                 Positioned(
                   top: _homeHeaderTop,
-                  right: CarbonSpacing.s5 + 13,
+                  right: CarbonSpacing.s5 + _langSwitchInset,
                   child: CarbonContentSwitcher(
                     dense: true,
+                    height: _langSwitchHeight,
+                    segmentWidth: _langSegmentWidth,
                     labels: const ['KO', 'EN'],
                     selected: isEn ? 1 : 0,
                     onChanged: (i) {
