@@ -42,6 +42,12 @@ flutter build web && flutter build apk --release
 ```
 
 - 사용자 확인용 설치는 항상 **릴리즈 APK** (디버그는 스크롤이 버벅임).
+- **Mac 빌드**: Android Studio 번들 JDK(Java 25)는 Gradle 8.14와 비호환 —
+  빌드할 때만 JDK 17을 지정한다 (전역 설정 변경 금지):
+  `J=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home;
+  JAVA_HOME=$J GRADLE_OPTS="-Dorg.gradle.java.home=$J" flutter build apk --release`.
+  PC마다 디버그 서명 키가 달라 Windows↔Mac 빌드를 바꿔 설치하면
+  `INSTALL_FAILED_UPDATE_INCOMPATIBLE` — 기존 앱 삭제 후 설치 (사용자 확인).
 - 웹 확인: **`flutter build web --pwa-strategy=none`으로 빌드**(서비스 워커
   제거)하고 `build/web`을 **고정 포트 7777** 하나로만 서빙할 것
   (`python -m http.server 7777`). 이미 서버가 떠 있으면 재사용한다 —
@@ -86,6 +92,12 @@ flutter build web && flutter build apk --release
 - `lib/setup9.dart` — 세팅 9(중립 디스크) 카드 20장 데이터, 지역별 도시
   (`cityRegions`), `drawDisks()` (1인/4인 = 0개)
 - `lib/reference.dart` — 부서 도감, 아이콘 참조표 화면
+- `lib/l10n.dart` — 한/영 표시 언어. `tr(ko, en)`으로 문구를 고르고, 데이터는
+  `ko`/`en` 쌍(`Department.ruleEn`, `cityNamesEn` 등)을 둔다. 시작 언어 =
+  저장된 스위치 값(`shared_preferences`, 웹은 localStorage) → 없으면 기기·
+  브라우저 언어(한국어면 KO, 그 외 EN). 안드로이드는 로캘이 main() 뒤에 늦게
+  오므로 저장값이 없으면 스위치를 누를 때까지 기기 언어를 따라간다.
+  영문 문구는 `rulebook/`의 영문 규칙서(기본·확장, git 미포함) 용어를 따른다.
 
 ## 디자인 규칙 (사용자 확정 사항 — 지킬 것)
 
@@ -129,6 +141,12 @@ flutter build web && flutter build apk --release
   인원 변경은 뒤로가기로 대체.
 - 확장 요약 = "종류 고르기(유형별 사용 번호 칩, `_KindCleanupCard`) →
   타일 제외(유형→번호순 정렬 그리드)" 세로 2단계. 상세에도 종류 고르기 카드.
+- 첫 화면: 상단 아이콘은 세부 페이지와 같은 `TopBar`(본문 열 안, 좌우 16 ·
+  위 8). **한영 스위치**(`KO | EN`, `CarbonContentSwitcher(dense: true)`)는
+  오버라인 줄 높이에 두고, 오른쪽 끝선을 아이콘 참조표 아이콘 글리프에 맞춘다.
+  아이콘과 스위치 간격 15px (`_homeHeaderTop`).
+- 영어 모드는 "영문 제목 + 한글 부제"로 한글판 배치를 뒤집어 보여준다.
+- 부서 도감 기본판/확장 설명은 `IndexedStack`으로 높이 고정 (전환 시 흔들림 금지).
 - 요약↔상세 전환 시 공통 요소(제목·요약 바·첫 헤더)의 위치가 흔들리면 안 됨
   (하단 여백을 모드 간 동일하게 유지).
 

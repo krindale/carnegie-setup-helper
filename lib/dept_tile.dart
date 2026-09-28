@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'carbon.dart';
 import 'departments.dart';
+import 'l10n.dart';
 
 // ---------------------------------------------------------------------------
 // 부서 타일 재창작 — 원본 아트워크 없이 부서 정보만으로 컴포넌트와 아이콘을
@@ -231,187 +232,195 @@ class DeptEffectBar extends StatelessWidget {
   List<Widget> _items() {
     return switch (dept.number) {
       1 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$8', '받기'),
+        _item(Icons.paid_outlined, '\$8', tr('받기', 'Gain')),
         _divider(null),
-        _item(Icons.directions_walk, '×8', '이동'),
+        _item(Icons.directions_walk, '×8', tr('이동', 'Moves')),
       ],
       2 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.add),
-        _item(Icons.person_add_alt_1, '×1', '로비'),
+        _item(Icons.person_add_alt_1, '×1', tr('로비', 'Lobby')),
         _divider(null),
-        _item(Icons.directions_walk, '×4', '이동'),
+        _item(Icons.directions_walk, '×4', tr('이동', 'Moves')),
       ],
       3 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.star, '+1', '2명당'),
+        _item(Icons.star, '+1', tr('2명당', 'Per 2')),
       ],
       4 => [
-        _item(Icons.inventory_2_outlined, '×2', '추가 지불'),
+        _item(Icons.inventory_2_outlined, '×2', tr('추가 지불', 'Extra')),
         _divider(Icons.arrow_forward),
-        _item(Icons.meeting_room_outlined, '택1', '로비'),
+        _item(
+          Icons.meeting_room_outlined,
+          tr('택1', 'Either'),
+          tr('로비', 'Lobby'),
+        ),
       ],
       5 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$8', '받기'),
+        _item(Icons.paid_outlined, '\$8', tr('받기', 'Gain')),
         _divider(null),
-        _item(Icons.inventory_2_outlined, '×3', '큐브'),
+        _item(Icons.inventory_2_outlined, '×3', tr('큐브', 'Cubes')),
       ],
       6 => [
-        _item(Icons.inventory_2_outlined, '×1~3', '지불'),
+        _item(Icons.inventory_2_outlined, '×1~3', tr('지불', 'Pay')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$6', '개당'),
+        _item(Icons.paid_outlined, '\$6', tr('개당', 'Each')),
       ],
       7 => [
-        _item(Icons.inventory_2_outlined, '×1~3', '지불'),
+        _item(Icons.inventory_2_outlined, '×1~3', tr('지불', 'Pay')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$3', '개당'),
+        _item(Icons.paid_outlined, '\$3', tr('개당', 'Each')),
         _divider(Icons.add),
-        _item(Icons.star, '+1', '개당'),
+        _item(Icons.star, '+1', tr('개당', 'Each')),
       ],
       8 => [
-        _item(Icons.grid_view, '+1', '새 부서'),
+        _item(Icons.grid_view, '+1', tr('새 부서', 'New Dept.')),
         _divider(Icons.arrow_forward),
-        _item(Icons.person, '×1', '이동'),
+        _item(Icons.person, '×1', tr('이동', 'Moves')),
       ],
       9 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.inventory_2_outlined, '×1~2', '지불'),
+        _item(Icons.inventory_2_outlined, '×1~2', tr('지불', 'Pay')),
         _divider(Icons.arrow_forward),
-        _item(Icons.location_city, '×1', '건설'),
+        _item(Icons.location_city, '×1', tr('건설', 'Build')),
       ],
       10 => [
-        _item(Icons.paid_outlined, '\$3', '지불'),
+        _item(Icons.paid_outlined, '\$3', tr('지불', 'Pay')),
         _divider(Icons.add),
-        _item(Icons.inventory_2_outlined, '×1~2', '지불'),
+        _item(Icons.inventory_2_outlined, '×1~2', tr('지불', 'Pay')),
         _divider(Icons.arrow_forward),
-        _item(Icons.location_city, '×1', '건설'),
+        _item(Icons.location_city, '×1', tr('건설', 'Build')),
       ],
       11 => [
-        _item(Icons.paid_outlined, '\$1', '개당'),
+        _item(Icons.paid_outlined, '\$1', tr('개당', 'Each')),
         _divider(Icons.arrow_forward),
-        _item(Icons.inventory_2_outlined, '×1~3', '구입'),
+        _item(Icons.inventory_2_outlined, '×1~3', tr('구입', 'Buy')),
       ],
       12 => [
-        _item(Icons.person, '×1', '활성'),
+        _item(Icons.person, '×1', tr('활성', 'Active')),
         _divider(Icons.arrow_forward),
-        _item(Icons.volunteer_activism_outlined, '\$3', '기부 기준'),
+        _item(
+          Icons.volunteer_activism_outlined,
+          '\$3',
+          tr('기부 기준', 'Donation'),
+        ),
       ],
       13 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.science_outlined, '+7', '연구'),
+        _item(Icons.science_outlined, '+7', tr('연구', 'Study')),
       ],
       14 => [
-        _item(Icons.person, '×1', '활성당'),
+        _item(Icons.person, '×1', tr('활성당', 'Per active')),
         _divider(Icons.arrow_forward),
-        _item(Icons.science_outlined, '+4', '연구'),
+        _item(Icons.science_outlined, '+4', tr('연구', 'Study')),
       ],
       15 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.add),
-        _item(Icons.paid_outlined, '비용', '지불'),
+        _item(Icons.paid_outlined, tr('비용', 'Cost'), tr('지불', 'Pay')),
         _divider(Icons.arrow_forward),
-        _item(Icons.favorite, '×1', '기부'),
+        _item(Icons.favorite, '×1', tr('기부', 'Donate')),
       ],
       16 => [
-        _item(Icons.person, '×1', '활성'),
+        _item(Icons.person, '×1', tr('활성', 'Active')),
         _divider(Icons.arrow_forward),
-        _item(Icons.train, '-1', '운송 연구'),
+        _item(Icons.train, '-1', tr('운송 연구', 'Transport')),
       ],
       // 확장 룰북 2–3쪽 신규 부서 17~32.
       17 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.directions_walk, '×1', '인사당'),
+        _item(Icons.directions_walk, '×1', tr('인사당', 'Per HR')),
       ],
       18 => [
-        _item(Icons.map_outlined, '택1', '지역'),
+        _item(Icons.map_outlined, tr('택1', '×1'), tr('지역', 'Region')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$2', '개당'),
+        _item(Icons.paid_outlined, '\$2', tr('개당', 'Each')),
         _divider(null),
-        _item(Icons.directions_walk, '×2', '개당'),
+        _item(Icons.directions_walk, '×2', tr('개당', 'Each')),
       ],
       19 => [
-        _item(Icons.person, '×1', '활성'),
+        _item(Icons.person, '×1', tr('활성', 'Active')),
         _divider(Icons.arrow_forward),
-        _item(Icons.north_east, '대각', '이동'),
+        _item(Icons.north_east, tr('대각', 'Diag.'), tr('이동', 'Moves')),
       ],
       20 => [
-        _item(Icons.grid_view, '×1', '빈칸당'),
+        _item(Icons.grid_view, '×1', tr('빈칸당', 'Per space')),
         _divider(Icons.arrow_forward),
-        _item(Icons.star, '+2', '승점'),
+        _item(Icons.star, '+2', tr('승점', 'VP')),
       ],
       21 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$3', '경영당'),
+        _item(Icons.paid_outlined, '\$3', tr('경영당', 'Per Mgmt.')),
       ],
       22 => [
-        _item(Icons.map_outlined, '택1', '지역'),
+        _item(Icons.map_outlined, tr('택1', '×1'), tr('지역', 'Region')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$2', '개당'),
+        _item(Icons.paid_outlined, '\$2', tr('개당', 'Each')),
         _divider(null),
-        _item(Icons.inventory_2_outlined, '×1', '개당'),
+        _item(Icons.inventory_2_outlined, '×1', tr('개당', 'Each')),
       ],
       23 => [
-        _item(Icons.paid_outlined, '+\$2', '+1점'),
+        _item(Icons.paid_outlined, '+\$2', tr('+1점', '+1 VP')),
         _divider(null),
-        _item(Icons.paid_outlined, '\$1', '-1점'),
+        _item(Icons.paid_outlined, '\$1', tr('-1점', '-1 VP')),
       ],
       24 => [
-        _item(Icons.map_outlined, '택1', '지역'),
+        _item(Icons.map_outlined, tr('택1', '×1'), tr('지역', 'Region')),
         _divider(Icons.arrow_forward),
-        _item(Icons.star, '+2', '개당'),
+        _item(Icons.star, '+2', tr('개당', 'Each')),
       ],
       25 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.inventory_2_outlined, '×1', '건설당'),
+        _item(Icons.inventory_2_outlined, '×1', tr('건설당', 'Per Constr.')),
       ],
       26 => [
-        _item(Icons.map_outlined, '택1', '지역'),
+        _item(Icons.map_outlined, tr('택1', '×1'), tr('지역', 'Region')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$2', '개당'),
+        _item(Icons.paid_outlined, '\$2', tr('개당', 'Each')),
         _divider(null),
-        _item(Icons.star, '+1', '개당'),
+        _item(Icons.star, '+1', tr('개당', 'Each')),
       ],
       27 => [
-        _item(Icons.location_city, '자유', '건설'),
+        _item(Icons.location_city, tr('자유', 'Any'), tr('건설', 'Build')),
         _divider(Icons.add),
-        _item(Icons.star, '+1', '일치 시'),
+        _item(Icons.star, '+1', tr('일치 시', 'If match')),
       ],
       28 => [
-        _item(Icons.link, '+1', '연결'),
+        _item(Icons.link, '+1', tr('연결', 'Connection')),
         _divider(Icons.arrow_forward),
-        _item(Icons.star, '+9', '6점 시'),
+        _item(Icons.star, '+9', tr('6점 시', 'At 6 pts')),
       ],
       29 => [
-        _item(Icons.person, '×1', '파견'),
+        _item(Icons.person, '×1', tr('파견', 'Mission')),
         _divider(Icons.arrow_forward),
-        _item(Icons.science_outlined, '+2', '연구당'),
+        _item(Icons.science_outlined, '+2', tr('연구당', 'Per R&D')),
       ],
       30 => [
-        _item(Icons.map_outlined, '택1', '지역'),
+        _item(Icons.map_outlined, tr('택1', '×1'), tr('지역', 'Region')),
         _divider(Icons.arrow_forward),
-        _item(Icons.paid_outlined, '\$2', '개당'),
+        _item(Icons.paid_outlined, '\$2', tr('개당', 'Each')),
         _divider(null),
-        _item(Icons.science_outlined, '+2', '개당'),
+        _item(Icons.science_outlined, '+2', tr('개당', 'Each')),
       ],
       31 => [
-        _item(Icons.train, '택1', '수입 단계'),
+        _item(Icons.train, tr('택1', 'Lower'), tr('수입 단계', 'Income')),
         _divider(null),
-        _item(Icons.flag_outlined, '가능', '끝칸 진입'),
+        _item(Icons.flag_outlined, tr('가능', 'Enter'), tr('끝칸 진입', 'Final box')),
       ],
       32 => [
-        _item(Icons.map_outlined, '최소', '지역'),
+        _item(Icons.map_outlined, tr('최소', 'Fewest'), tr('지역', 'Region')),
         _divider(Icons.arrow_forward),
-        _item(Icons.star, '+4', '개당'),
+        _item(Icons.star, '+4', tr('개당', 'Each')),
       ],
       _ => const [],
     };
@@ -476,7 +485,7 @@ class DeptEffectBar extends StatelessWidget {
           ),
           SizedBox(width: _s(3)),
           Text(
-            '지속',
+            tr('지속', 'Ongoing'),
             style: TextStyle(
               fontFamily: 'SUIT',
               fontSize: _s(10),
@@ -505,7 +514,7 @@ class DeptEffectBar extends StatelessWidget {
           ),
           SizedBox(width: _s(3)),
           Text(
-            '종료',
+            tr('종료', 'End'),
             style: TextStyle(
               fontFamily: 'SUIT',
               fontSize: _s(10),
@@ -558,7 +567,7 @@ class DeptEffectBar extends StatelessWidget {
       child: icon != null
           ? Icon(icon, size: _s(18), color: const Color(0x8AFFFFFF))
           : Text(
-              '또는',
+              tr('또는', 'or'),
               style: TextStyle(
                 fontFamily: 'SUIT',
                 fontSize: _s(11),
@@ -660,26 +669,22 @@ class _TileBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  dept.ko,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'SUIT',
-                    // 하단 효과 바 아이콘 크기(20×1.3=26)와 동일하게 맞춘다.
-                    fontSize: _s(26),
-                    height: 1.2,
-                    fontWeight: FontWeight.w800,
-                    color: CarbonColors.textPrimary,
-                  ),
-                ),
+                // 영문 이름은 한글보다 길어 말줄임 대신 폭에 맞게 축소한다.
+                if (isEn)
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: _name(),
+                  )
+                else
+                  _name(),
                 SizedBox(height: _s(2)),
-                // 영문 부제는 폭에 맞게 자동 축소해 말줄임 없이 표시한다.
+                // 보조 이름(다른 언어)은 폭에 맞게 자동 축소해 말줄임 없이 표시한다.
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    dept.en.toUpperCase(),
+                    dept.altName.toUpperCase(),
                     maxLines: 1,
                     style: TextStyle(
                       fontFamily: 'SUIT',
@@ -701,6 +706,22 @@ class _TileBody extends StatelessWidget {
             color: deptTypeColor(dept),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _name() {
+    return Text(
+      dept.name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        fontFamily: 'SUIT',
+        // 하단 효과 바 아이콘 크기(20×1.3=26)와 동일하게 맞춘다.
+        fontSize: _s(26),
+        height: 1.2,
+        fontWeight: FontWeight.w800,
+        color: CarbonColors.textPrimary,
       ),
     );
   }

@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'l10n.dart';
+
 /// The four Carnegie action types a department belongs to.
 enum DeptType {
   hr('인사', 'Human Resources'),
@@ -10,6 +12,10 @@ enum DeptType {
   const DeptType(this.ko, this.en);
   final String ko;
   final String en;
+
+  /// 현재 언어의 유형 이름과, 보조 표기로 쓰는 다른 언어 이름.
+  String get label => tr(ko, en);
+  String get altLabel => tr(en, ko);
 }
 
 class Department {
@@ -19,6 +25,7 @@ class Department {
     required this.en,
     required this.type,
     required this.rule,
+    required this.ruleEn,
     this.ongoing = false,
     this.expansion = false,
     this.endgame = false,
@@ -29,6 +36,14 @@ class Department {
   final String en;
   final DeptType type;
   final String rule;
+
+  /// 영문 규칙 설명 (영문 규칙서 16–17쪽, 확장 룰북 2–3쪽).
+  final String ruleEn;
+
+  /// 현재 언어의 부서 이름·규칙과, 보조 표기로 쓰는 다른 언어 이름.
+  String get name => tr(ko, en);
+  String get altName => tr(en, ko);
+  String get ruleText => tr(rule, ruleEn);
 
   /// Tiles 4, 8, 12, 16 have a different color and provide ongoing effects.
   /// 확장 세트 3(19, 23, 27, 31)도 지속 효과를 제공합니다.
@@ -55,6 +70,10 @@ const departments = <Department>[
     rule:
         '이 부서에서 활성화된 직원 1명을 파견합니다. 그런 다음, \$8를 받거나 '
         '직원을 최대 8회 이동시킬 수 있습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. Then, the player may choose to receive '
+        'either \$8 OR 8 employee moves.',
   ),
   Department(
     number: 2,
@@ -64,6 +83,11 @@ const departments = <Department>[
     rule:
         '사용할 때마다 선택합니다: 활성화된 직원 1명을 파견한 뒤 새 직원 1명을 '
         '회사 로비에 놓거나, 직원을 최대 4회 이동시킵니다.',
+    ruleEn:
+        'For each use of this Department, the player may either: send an '
+        'active employee from this Department on a Mission, then immediately '
+        'place a new employee from their supply into their Company\'s Lobby, '
+        'OR receive 4 employee moves.',
   ),
   Department(
     number: 3,
@@ -73,6 +97,11 @@ const departments = <Department>[
     rule:
         '활성화된 직원 1명을 파견합니다. 그런 다음, 회사에 활성화된 직원 2명당 '
         '승점 1점(올림)을 얻습니다. 파견 나간 직원은 세지 않습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. Then, the player receives 1 VP for '
+        'every two active employees in their Company, rounded up. Employees '
+        'on Missions are not considered to be active.',
   ),
   Department(
     number: 4,
@@ -84,6 +113,12 @@ const departments = <Department>[
         '조직할 때 일반 비용에 추가로 상품 큐브 2개를 지불합니다. 이후 새 직원과 '
         '복귀 직원을 두 로비 중 원하는 곳에 배치할 수 있습니다. '
         '활성화된 직원 없이도 효과가 적용되는 유일한 부서입니다.',
+    ruleEn:
+        'To build this Department, the player must pay 2 goods cubes in '
+        'addition to the normal building cost. Once built, it can hold new '
+        'recruits and returning employees, which can be allocated between the '
+        'two Lobbies as desired. It is the only Department that does not '
+        'require an active employee to function.',
   ),
   Department(
     number: 5,
@@ -93,6 +128,10 @@ const departments = <Department>[
     rule:
         '활성화된 직원 1명을 파견합니다. 그런 다음, \$8를 받거나 '
         '상품 큐브 3개를 가져옵니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission; they may then either receive \$8 OR '
+        'take 3 goods cubes from the supply.',
   ),
   Department(
     number: 6,
@@ -100,6 +139,10 @@ const departments = <Department>[
     en: 'Sales',
     type: DeptType.management,
     rule: '상품 큐브를 1~3개 공급처에 지불합니다. 지불한 상품 큐브마다 \$6를 받습니다.',
+    ruleEn:
+        'Each time a player uses this Department, they may pay 1 to 3 goods '
+        'cubes to the supply. For each cube paid in this way, they receive '
+        '\$6.',
   ),
   Department(
     number: 7,
@@ -109,6 +152,10 @@ const departments = <Department>[
     rule:
         '상품 큐브를 1~3개 공급처에 지불합니다. 지불한 상품 큐브마다 '
         '\$3와 승점 1점을 얻습니다.',
+    ruleEn:
+        'Each time a player uses this Department, they may pay 1 to 3 goods '
+        'cubes to the supply. For each cube paid in this way, they receive '
+        '\$3 and 1 VP.',
   ),
   Department(
     number: 8,
@@ -119,6 +166,10 @@ const departments = <Department>[
     rule:
         '지속 효과: 회사에 새로운 부서를 추가할 때마다, 직원 1명(활성/비활성)을 '
         '즉시 새 부서로 이동시킬 수 있습니다(비활성 상태로 놓임).',
+    ruleEn:
+        'Ongoing effect: whenever a player adds a new Department to their '
+        'Company, they may immediately move one of their employees (active or '
+        'inactive) to the new Department, in an inactive state.',
   ),
   Department(
     number: 9,
@@ -128,6 +179,10 @@ const departments = <Department>[
     rule:
         '활성화된 직원 1명을 파견합니다. 그런 다음, 상품 큐브 1~2개를 지불하고 '
         '파견한 지역에 새로운 프로젝트 1개를 짓습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. That player then pays 1 or 2 goods '
+        'cubes to build a new project in the same region.',
   ),
   Department(
     number: 10,
@@ -137,6 +192,10 @@ const departments = <Department>[
     rule:
         '\$3와 상품 큐브 1~2개를 지불하면, 직원을 파견하지 않고도 게임판 어디에든 '
         '새로운 프로젝트 1개를 지을 수 있습니다.',
+    ruleEn:
+        'Whenever this Department is used, the player may pay \$3 and 1-2 '
+        'goods cubes to build a new project anywhere on the game board, '
+        'without sending an employee on a Mission.',
   ),
   Department(
     number: 11,
@@ -144,6 +203,9 @@ const departments = <Department>[
     en: 'Supply Chain',
     type: DeptType.construction,
     rule: '상품 큐브 1~3개를 1개당 \$1에 구입할 수 있습니다.',
+    ruleEn:
+        'Whenever a player uses this Department, they may purchase up to 3 '
+        'goods cubes at a cost of \$1 each.',
   ),
   Department(
     number: 12,
@@ -154,6 +216,10 @@ const departments = <Department>[
     rule:
         '지속 효과: 활성화된 직원 1명이 있는 동안, 기부 비용이 \$5가 아닌 '
         '\$3를 기준으로 계산됩니다.',
+    ruleEn:
+        'Ongoing effect: as long as this Department contains an active '
+        'employee, the costs of the player\'s new donations are calculated on '
+        'the basis of \$3 per donation, rather than \$5.',
   ),
   Department(
     number: 13,
@@ -161,6 +227,9 @@ const departments = <Department>[
     en: 'Advanced Research',
     type: DeptType.rnd,
     rule: '활성화된 직원 1명을 파견합니다. 그런 다음, 연구 점수 7점을 얻습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission; the player then gains 7 study points.',
   ),
   Department(
     number: 14,
@@ -168,6 +237,9 @@ const departments = <Department>[
     en: 'Advanced Design',
     type: DeptType.rnd,
     rule: '이 부서의 활성화된 직원 1명당 연구 점수 4점을 얻습니다.',
+    ruleEn:
+        'Whenever this Department is used, its owner gains 4 study points for '
+        'each active employee in the Department.',
   ),
   Department(
     number: 15,
@@ -177,6 +249,11 @@ const departments = <Department>[
     rule:
         '활성화된 직원 1명을 파견하고 기부 비용을 지불한 뒤, 자신의 기부 디스크를 '
         '다른 플레이어의 기부 디스크 위에 놓습니다. 같은 기부는 2번 할 수 없습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. After paying the donation cost, the '
+        'player places one of their disks on top of another player\'s donation '
+        'disk. A player may not make the same donation twice.',
   ),
   Department(
     number: 16,
@@ -187,6 +264,10 @@ const departments = <Department>[
     rule:
         '지속 효과: 활성화된 직원 1명이 있는 동안, 운송수단 트랙을 전진시키는 '
         '연구 점수 비용이 1 감소합니다(최소 1).',
+    ruleEn:
+        'Ongoing effect: as long as this Department contains an active '
+        'employee, the player\'s study point costs to progress along '
+        'transportation tracks are reduced by 1 (to a minimum of 1).',
   ),
 ];
 
@@ -204,6 +285,13 @@ const expansionDepartments = <Department>[
         '이 부서에서 활성화된 직원 1명을 파견합니다. 그런 다음, 회사의 인사 부서 '
         '1개당(시작 부서 포함) 회사 안의 직원 1명을 원하는 다른 칸으로 이동시킬 수 '
         '있습니다. 이렇게 이동한 직원은 비활성 상태가 됩니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. Then, for each Human Resources '
+        'Department in their Company (including the starting Department), '
+        'they may move one employee on their Company board to any other '
+        'location within their Company. An employee moved this way becomes '
+        'inactive.',
   ),
   Department(
     number: 18,
@@ -214,6 +302,10 @@ const expansionDepartments = <Department>[
     rule:
         '지도에서 지역 1곳을 선택합니다. 그 지역에 지은 자신의 프로젝트 1개당 '
         '\$2를 받거나 직원을 2회 이동시킵니다.',
+    ruleEn:
+        'The player chooses a single region of the map. For each project they '
+        'have built in that region, they receive either \$2 OR 2 employee '
+        'moves.',
   ),
   Department(
     number: 19,
@@ -225,6 +317,11 @@ const expansionDepartments = <Department>[
     rule:
         '지속 효과: 턴 시작 시 이 부서에 활성화된 직원이 있으면, 그 턴 동안 '
         '회사 안에서 직원을 대각선 방향으로도 이동시킬 수 있습니다.',
+    ruleEn:
+        'Ongoing effect: if this Department contains an active employee at '
+        'the beginning of the turn, the player\'s employees may move '
+        'diagonally or orthogonally within their Company for the duration of '
+        'that turn.',
   ),
   Department(
     number: 20,
@@ -236,6 +333,10 @@ const expansionDepartments = <Department>[
     rule:
         '게임 종료 시 이 부서에 활성화된 직원이 있으면, 회사 보드에서 부서가 없는 '
         '빈칸 1개당 승점 2점을 얻습니다.',
+    ruleEn:
+        'If this Department contains an active employee at the end of the '
+        'game, the player scores 2 VP for each space on their Company board '
+        'that does not contain a Department.',
   ),
   Department(
     number: 21,
@@ -246,6 +347,11 @@ const expansionDepartments = <Department>[
     rule:
         '이 부서에서 활성화된 직원 1명을 파견합니다. 그런 다음, 회사의 경영 부서 '
         '1개당(시작 부서 포함) \$3를 받습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. The player then receives \$3 for each '
+        'Management Department in their Company (including starting '
+        'Departments).',
   ),
   Department(
     number: 22,
@@ -256,6 +362,9 @@ const expansionDepartments = <Department>[
     rule:
         '지도에서 지역 1곳을 선택합니다. 그 지역에 지은 자신의 프로젝트 1개당 '
         '\$2를 받거나 상품 큐브 1개를 가져옵니다.',
+    ruleEn:
+        'The player chooses a single region of the map. For each project they '
+        'have built in that region, they receive either \$2 OR 1 goods cube.',
   ),
   Department(
     number: 23,
@@ -269,6 +378,12 @@ const expansionDepartments = <Department>[
         '제외), 회사에서 직원을 활성화할 때 명시된 비용 대신 \$2를 더 내고 승점 '
         '1점을 얻거나, 비용과 무관하게 \$1만 내고 승점 1점을 잃을 수 있습니다'
         '(승점이 0 이하면 불가).',
+    ruleEn:
+        'Ongoing effect while this Department contains an active employee '
+        '(not in the round that employee was activated): when activating an '
+        'employee anywhere in their Company, the player may pay \$2 more than '
+        'the listed price and gain 1 VP, OR pay \$1 regardless of price and '
+        'lose 1 VP (not allowed with 0 or fewer VP).',
   ),
   Department(
     number: 24,
@@ -280,6 +395,10 @@ const expansionDepartments = <Department>[
     rule:
         '게임 종료 시 이 부서에 활성화된 직원이 있으면, 자신이 선택한 지역 1곳에 '
         '지은 프로젝트 1개당 승점 2점을 얻습니다.',
+    ruleEn:
+        'If this Department contains an active employee at the end of the '
+        'game, the player gains 2 VP for each project they have built in a '
+        'single region of their choice.',
   ),
   Department(
     number: 25,
@@ -290,6 +409,11 @@ const expansionDepartments = <Department>[
     rule:
         '이 부서에서 활성화된 직원 1명을 파견합니다. 그런 다음, 회사의 건설 부서 '
         '1개당(시작 부서 포함) 상품 큐브 1개를 가져옵니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. The player then receives 1 goods cube '
+        'for each Construction Department in their Company (including the '
+        'starting Department).',
   ),
   Department(
     number: 26,
@@ -300,6 +424,9 @@ const expansionDepartments = <Department>[
     rule:
         '지도에서 지역 1곳을 선택합니다. 그 지역에 지은 자신의 프로젝트 1개당 '
         '\$2를 받거나 승점 1점을 얻습니다.',
+    ruleEn:
+        'The player chooses a single region of the map. For each project they '
+        'have built in that region, they receive either \$2 OR 1 VP.',
   ),
   Department(
     number: 27,
@@ -312,6 +439,11 @@ const expansionDepartments = <Department>[
         '지속 효과: 활성화된 직원 1명이 있는 동안, 선택한 프로젝트 종류와 '
         '일치하지 않는 칸에도 지을 수 있습니다. 소도시에 짓거나 일치하는 칸에 '
         '지으면 승점 1점을 얻습니다.',
+    ruleEn:
+        'Ongoing effect: as long as this Department contains an active '
+        'employee, the player may build on spaces that do not match the '
+        'chosen project type. If the player builds in a small town, or on a '
+        'space that matches the chosen project type, they gain 1 VP.',
   ),
   Department(
     number: 28,
@@ -324,6 +456,11 @@ const expansionDepartments = <Department>[
         '게임 종료 시 이 부서에 활성화된 직원이 있으면, 대도시 연결을 셀 때 연결 '
         '점수 1점을 더합니다(최대 6점). 연결 점수 6점으로 게임을 마치면 보너스 '
         '승점 9점을 추가로 얻습니다.',
+    ruleEn:
+        'If this Department contains an active employee at the end of the '
+        'game, the player may add 1 connection point when counting '
+        'connections between major cities (to a maximum of 6). Finishing with '
+        '6 connection points gives a bonus of 9 VP.',
   ),
   Department(
     number: 29,
@@ -334,6 +471,11 @@ const expansionDepartments = <Department>[
     rule:
         '이 부서에서 활성화된 직원 1명을 파견합니다. 그런 다음, 회사의 연구개발 '
         '부서 1개당(시작 부서 포함) 연구 점수 2점을 얻습니다.',
+    ruleEn:
+        'To use this Department, the player must send an active employee from '
+        'this Department on a Mission. The player then receives 2 study '
+        'points for each R&D Department in their Company (including the '
+        'starting Department).',
   ),
   Department(
     number: 30,
@@ -344,6 +486,10 @@ const expansionDepartments = <Department>[
     rule:
         '지도에서 지역 1곳을 선택합니다. 그 지역에 지은 자신의 프로젝트 1개당 '
         '\$2를 받거나 연구 점수 2점을 얻습니다.',
+    ruleEn:
+        'The player chooses a single region of the map. For each project they '
+        'have built in that region, they receive either \$2 OR 2 study '
+        'points.',
   ),
   Department(
     number: 31,
@@ -357,6 +503,13 @@ const expansionDepartments = <Department>[
         '위치보다 낮은 단계의 수입을 선택할 수 있습니다. 또한 운송수단 트랙의 '
         '마지막 칸이 다른 플레이어의 마커로 차 있어도 들어가서 트랙 끝 보너스를 '
         '받을 수 있습니다.',
+    ruleEn:
+        'Ongoing effects while this Department contains an active employee: '
+        'when receiving transport income, the player may choose a lower level '
+        'of income than their disk\'s position. Also, their transportation '
+        'marker may enter the final box of each transportation track and '
+        'receive the end-of-track bonus, even if it is occupied by other '
+        'players\' markers.',
   ),
   Department(
     number: 32,
@@ -368,6 +521,10 @@ const expansionDepartments = <Department>[
     rule:
         '게임 종료 시 이 부서에 활성화된 직원이 있으면, 자신이 프로젝트를 가장 '
         '적게 지은 지역에 지은 프로젝트 1개당 승점 4점을 얻습니다.',
+    ruleEn:
+        'If this Department contains an active employee at the end of the '
+        'game, the player gains 4 VP for each project they built in the '
+        'region in which they had built the fewest projects.',
   ),
 ];
 

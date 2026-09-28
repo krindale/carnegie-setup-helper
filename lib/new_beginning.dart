@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'carbon.dart';
+import 'l10n.dart';
 
 // ---------------------------------------------------------------------------
 // 확장 #1 "새로운 시작" 입찰 시트 개인 계산기 (확장 룰북 1쪽).
@@ -10,47 +11,89 @@ import 'carbon.dart';
 // 없고, 시작 자금 = $50 − (2~5행 순비용), 선 플레이어가 되면 입찰액도 뺀다.
 // ---------------------------------------------------------------------------
 
-/// 시트 한 줄의 선택지: (표시 값, 비용 — 음수는 돈을 받음).
-typedef _Option = (String, int);
+/// 시트 한 줄의 선택지: (표시 값, 영문 표시 값, 비용 — 음수는 돈을 받음).
+typedef _Option = (String, String, int);
 
+/// 선택지의 현재 언어 표시 값.
+String _optionLabel(_Option o) => tr(o.$1, o.$2);
+
+/// 줄 이름의 영문은 실물 시트 표기(1st Player Auction, Goods Cubes,
+/// Workers in Lobby, Victory Points, Setup Moves)를 따른다.
 class _Line {
-  const _Line(this.title, this.subtitle, this.icon, this.options);
+  const _Line(
+    this.title,
+    this.titleEn,
+    this.subtitle,
+    this.subtitleEn,
+    this.icon,
+    this.options,
+  );
 
   final String title;
+  final String titleEn;
   final String subtitle;
+  final String subtitleEn;
   final IconData icon;
   final List<_Option> options;
 }
 
 const _lines = <_Line>[
-  _Line('상품 큐브', '시작 시 받을 상품 큐브 수', Icons.inventory_2_outlined, [
-    ('2개', 6),
-    ('3개', 9),
-    ('4개', 12),
-    ('5개', 15),
-    ('6개', 18),
-  ]),
-  _Line('로비 직원', '활성 직원 5명에 더해 로비에 눕혀 둘 직원 수', Icons.person_outline, [
-    ('3명', 0),
-    ('4명', 8),
-    ('5명', 16),
-    ('6명', 24),
-    ('7명', 32),
-  ]),
-  _Line('승점', '시작 승점 조정 — 승점을 낮추면 돈을 받습니다', Icons.star_outline, [
-    ('-6점', -12),
-    ('-3점', -6),
-    ('0점', 0),
-    ('+3점', 6),
-    ('+6점', 12),
-  ]),
-  _Line('준비 이동', '게임 준비 마지막에 직원을 이동시킬 횟수', Icons.directions_walk, [
-    ('4회', 5),
-    ('5회', 8),
-    ('6회', 10),
-    ('8회', 15),
-    ('10회', 20),
-  ]),
+  _Line(
+    '상품 큐브',
+    'Goods Cubes',
+    '시작 시 받을 상품 큐브 수',
+    'Goods cubes you start the game with',
+    Icons.inventory_2_outlined,
+    [
+      ('2개', '2 cubes', 6),
+      ('3개', '3 cubes', 9),
+      ('4개', '4 cubes', 12),
+      ('5개', '5 cubes', 15),
+      ('6개', '6 cubes', 18),
+    ],
+  ),
+  _Line(
+    '로비 직원',
+    'Workers in Lobby',
+    '활성 직원 5명에 더해 로비에 눕혀 둘 직원 수',
+    'Inactive employees in your Lobby, in addition to the 5 active ones',
+    Icons.person_outline,
+    [
+      ('3명', '3', 0),
+      ('4명', '4', 8),
+      ('5명', '5', 16),
+      ('6명', '6', 24),
+      ('7명', '7', 32),
+    ],
+  ),
+  _Line(
+    '승점',
+    'Victory Points',
+    '시작 승점 조정 — 승점을 낮추면 돈을 받습니다',
+    'Adjust your starting score — giving up VP earns you money',
+    Icons.star_outline,
+    [
+      ('-6점', '-6 VP', -12),
+      ('-3점', '-3 VP', -6),
+      ('0점', '0 VP', 0),
+      ('+3점', '+3 VP', 6),
+      ('+6점', '+6 VP', 12),
+    ],
+  ),
+  _Line(
+    '준비 이동',
+    'Setup Moves',
+    '게임 준비 마지막에 직원을 이동시킬 횟수',
+    'Employee moves in the last step of setup',
+    Icons.directions_walk,
+    [
+      ('4회', '4 moves', 5),
+      ('5회', '5 moves', 8),
+      ('6회', '6 moves', 10),
+      ('8회', '8 moves', 15),
+      ('10회', '10 moves', 20),
+    ],
+  ),
 ];
 
 /// 예산 한도.
@@ -80,7 +123,7 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
   int get _spent {
     var sum = 0;
     for (final (i, line) in _lines.indexed) {
-      sum += line.options[_selected[i]].$2;
+      sum += line.options[_selected[i]].$3;
     }
     return sum;
   }
@@ -106,27 +149,43 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(CarbonSpacing.s5),
                     children: [
-                      Text('새로운 시작', style: CarbonText.heading05),
+                      Text(
+                        tr('새로운 시작', 'A New Beginning'),
+                        style: CarbonText.heading05,
+                      ),
                       const SizedBox(height: CarbonSpacing.s3),
                       Text(
-                        '시작 자원을 \$$_budget 한도 안에서 선택하세요. 모든 줄에서 '
-                        '하나씩 고른 뒤, 각자 비밀리에 정해 동시에 공개합니다. '
-                        '가장 많이 입찰한 사람이 선 플레이어가 됩니다.',
+                        tr(
+                          '시작 자원을 \$$_budget 한도 안에서 선택하세요. 모든 줄에서 '
+                              '하나씩 고른 뒤, 각자 비밀리에 정해 동시에 공개합니다. '
+                              '가장 많이 입찰한 사람이 선 플레이어가 됩니다.',
+                          'Choose your starting resources within a \$$_budget '
+                              'limit. Each player secretly chooses one option for '
+                              'each line, then all reveal simultaneously. The high '
+                              'bidder becomes the first player.',
+                        ),
                         style: CarbonText.body01.copyWith(
                           color: CarbonColors.textSecondary,
                         ),
                       ),
                       const SizedBox(height: CarbonSpacing.s6),
                       _sectionHeader(
-                        '선 플레이어 입찰',
-                        '선 플레이어가 된 사람만 입찰액을 지불합니다',
+                        tr('선 플레이어 입찰', '1st Player Auction'),
+                        tr(
+                          '선 플레이어가 된 사람만 입찰액을 지불합니다',
+                          'Only the first player pays their bid',
+                        ),
                         Icons.gavel_outlined,
                       ),
                       const SizedBox(height: CarbonSpacing.s4),
                       _bidField(),
                       for (final (i, line) in _lines.indexed) ...[
                         const SizedBox(height: CarbonSpacing.s6),
-                        _sectionHeader(line.title, line.subtitle, line.icon),
+                        _sectionHeader(
+                          tr(line.title, line.titleEn),
+                          tr(line.subtitle, line.subtitleEn),
+                          line.icon,
+                        ),
                         const SizedBox(height: CarbonSpacing.s4),
                         _optionRows(i, line),
                       ],
@@ -151,8 +210,8 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
     Widget chip(int j, double width) => SizedBox(
       width: width,
       child: _OptionChip(
-        label: line.options[j].$1,
-        cost: line.options[j].$2,
+        label: _optionLabel(line.options[j]),
+        cost: line.options[j].$3,
         selected: _selected[lineIndex] == j,
         onTap: () => setState(() => _selected[lineIndex] = j),
       ),
@@ -256,17 +315,26 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
   }
 
   Widget _summaryCard() {
-    final goods = _lines[0].options[_selected[0]].$1;
-    final workers = _lines[1].options[_selected[1]].$1;
-    final vp = _lines[2].options[_selected[2]].$1;
-    final moves = _lines[3].options[_selected[3]].$1;
+    final goods = _optionLabel(_lines[0].options[_selected[0]]);
+    final workers = _optionLabel(_lines[1].options[_selected[1]]);
+    final vp = _optionLabel(_lines[2].options[_selected[2]]);
+    final moves = _optionLabel(_lines[3].options[_selected[3]]);
     final rows = <(String, String)>[
-      ('상품 큐브', goods),
-      ('직원', '활성 5명 + 로비 $workers'),
-      ('시작 승점', vp),
-      ('준비 이동', moves),
-      ('시작 자금 (선이 아닐 때)', '\$${_budget - _spent}'),
-      ('시작 자금 (선일 때)', '\$${_budget - _spent - _bid}'),
+      (tr('상품 큐브', 'Goods cubes'), goods),
+      (
+        tr('직원', 'Employees'),
+        tr('활성 5명 + 로비 $workers', '5 active + $workers in Lobby'),
+      ),
+      (tr('시작 승점', 'Starting VP'), vp),
+      (tr('준비 이동', 'Setup moves'), moves),
+      (
+        tr('시작 자금 (선이 아닐 때)', 'Starting money (not first player)'),
+        '\$${_budget - _spent}',
+      ),
+      (
+        tr('시작 자금 (선일 때)', 'Starting money (first player)'),
+        '\$${_budget - _spent - _bid}',
+      ),
     ];
     return Container(
       decoration: BoxDecoration(
@@ -283,7 +351,7 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
             ),
             color: CarbonColors.layer01,
             child: Text(
-              '시작 상태 요약',
+              tr('시작 상태 요약', 'Starting Summary'),
               style: CarbonText.heading01.copyWith(fontWeight: FontWeight.w800),
             ),
           ),
@@ -337,7 +405,11 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
                 vertical: CarbonSpacing.s3,
               ),
               child: Text(
-                '한도 초과 — 입찰을 포함한 총액이 \$$_budget를 넘을 수 없습니다',
+                tr(
+                  '한도 초과 — 입찰을 포함한 총액이 \$$_budget를 넘을 수 없습니다',
+                  'Over the limit — the total cost, including your bid, may '
+                      'not exceed \$$_budget',
+                ),
                 style: CarbonText.body01.copyWith(
                   color: CarbonColors.supportError,
                 ),
@@ -349,14 +421,17 @@ class _NewBeginningScreenState extends State<NewBeginningScreen> {
             children: [
               Expanded(
                 child: Text(
-                  '지출 \$$_spent · 입찰 \$$_bid',
+                  tr(
+                    '지출 \$$_spent · 입찰 \$$_bid',
+                    'Spent \$$_spent · Bid \$$_bid',
+                  ),
                   style: CarbonText.body01.copyWith(
                     color: CarbonColors.textSecondary,
                   ),
                 ),
               ),
               Text(
-                '남는 예산 \$$remain',
+                tr('남는 예산 \$$remain', 'Remaining \$$remain'),
                 style: CarbonText.heading02.copyWith(
                   color: _overBudget
                       ? CarbonColors.supportError
@@ -388,7 +463,7 @@ class _OptionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final costLabel = switch (cost) {
-      0 => '무료',
+      0 => tr('무료', 'Free'),
       < 0 => '+\$${-cost}',
       _ => '\$$cost',
     };

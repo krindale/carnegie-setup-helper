@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'l10n.dart';
+
 /// 규칙서 4쪽 세팅 9번 — 2/3인 게임에서 중립 색 디스크를 게임판에 배치.
 /// 데이터 출처: CARNEGIE_SETUP_RANDOMIZER__V1.xlsx (1인 게임 카드 20장).
 ///
@@ -48,6 +50,17 @@ const donationRows = <String, String>{
   'D': '보건 (Health)',
 };
 
+/// 기부 차트 행 영문 이름 (영문 규칙서 15쪽).
+const donationRowsEn = <String, String>{
+  'A': 'Education',
+  'B': 'Human Rights',
+  'C': 'Welfare',
+  'D': 'Health',
+};
+
+String donationRowName(String row) =>
+    tr(donationRows[row]!, donationRowsEn[row]!);
+
 /// 인원수별 중립 디스크 개수. 4인은 0 (생략).
 const disksByPlayerCount = <int, int>{1: 0, 2: 18, 3: 9, 4: 0};
 
@@ -58,6 +71,49 @@ const cityRegions = <String, List<String>>{
   '남부': ['산타페', '댈러스', '샌안토니오', '휴스턴', '멤피스', '뉴올리언스', '애틀랜타', '찰스턴'],
   '동부': ['피츠버그', '워싱턴 D.C.', '올버니', '뉴욕', '보스턴'],
 };
+
+/// 지역 영문 이름 (영문 규칙서 3쪽 게임판 설명).
+const regionNamesEn = <String, String>{
+  '서부': 'West',
+  '중서부': 'Midwest',
+  '남부': 'South',
+  '동부': 'East',
+};
+
+/// 도시 영문 이름 (게임판 표기).
+const cityNamesEn = <String, String>{
+  '포틀랜드': 'Portland',
+  '보이시': 'Boise',
+  '리노': 'Reno',
+  '솔트레이크시티': 'Salt Lake City',
+  '샌프란시스코': 'San Francisco',
+  '로스앤젤레스': 'Los Angeles',
+  '덴버': 'Denver',
+  '파고': 'Fargo',
+  '덜루스': 'Duluth',
+  '세인트폴': 'St. Paul',
+  '오마하': 'Omaha',
+  '캔자스시티': 'Kansas City',
+  '세인트루이스': 'St. Louis',
+  '시카고': 'Chicago',
+  '신시내티': 'Cincinnati',
+  '산타페': 'Santa Fe',
+  '댈러스': 'Dallas',
+  '샌안토니오': 'San Antonio',
+  '휴스턴': 'Houston',
+  '멤피스': 'Memphis',
+  '뉴올리언스': 'New Orleans',
+  '애틀랜타': 'Atlanta',
+  '찰스턴': 'Charleston',
+  '피츠버그': 'Pittsburgh',
+  '워싱턴 D.C.': 'Washington',
+  '올버니': 'Albany',
+  '뉴욕': 'New York',
+  '보스턴': 'Boston',
+};
+
+String regionName(String region) => tr(region, regionNamesEn[region]!);
+String cityName(String city) => tr(city, cityNamesEn[city]!);
 
 class DiskSetup {
   DiskSetup(this.playerCount, this.donations, this.cityDisks);

@@ -5,14 +5,17 @@ import 'package:flutter/services.dart';
 import 'carbon.dart';
 import 'departments.dart';
 import 'dept_tile.dart';
+import 'l10n.dart';
 import 'new_beginning.dart';
 import 'reference.dart';
 import 'rules.dart';
 import 'setup9.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // 저장된 한영 선택 → 없으면 기기(브라우저) 언어로 시작 언어를 정한다.
+  await loadAppLang();
   runApp(const CarnegieApp());
 }
 
@@ -30,8 +33,15 @@ class CarnegieApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: appLang,
+      builder: (context, _, _) => _app(),
+    );
+  }
+
+  Widget _app() {
     return MaterialApp(
-      title: 'Carnegie 부서 타일 셀렉터',
+      title: tr('Carnegie 부서 타일 셀렉터', 'Carnegie Department Tile Selector'),
       debugShowCheckedModeBanner: false,
       scrollBehavior: const _BouncyScrollBehavior(),
       theme: ThemeData(
@@ -69,7 +79,8 @@ const regionColors = <String, Color>{
 };
 
 /// 1인 게임 준비는 2인과 동일하므로 하나의 선택지로 합친다.
-String playerLabel(int p) => p == 2 ? '1-2인' : '$p인';
+String playerLabel(int p) =>
+    p == 2 ? tr('1-2인', '1-2 Players') : tr('$p인', '$p Players');
 
 /// Per-department exclusion state, in physical-setup terms.
 /// [boxedKind]: 확장 모드에서 유형별 4종 선택에 들지 못해 통째로 상자에
@@ -100,20 +111,41 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
+/// 첫 화면 오버라인 줄(한영 스위치 포함)의 화면 위 끝 기준 위치.
+/// 상단 아이콘 글리프 하단(위 8 + 버튼 여백 11 + 글리프 22 ≈ 39)에서
+/// 15px 아래 (사용자 확정: 아이콘과 스위치 간격 15).
+const _homeHeaderTop = 54.0;
+
 class _SetupScreenState extends State<SetupScreen> {
   /// 확장 #1 "새로운 부서" 포함 여부 (세션 한정, 기본 꺼짐).
   bool _expansion = false;
+
+  // 기기 로캘이 늦게 전달되는 경우 등 스위치 밖에서 언어가 바뀌어도
+  // 첫 화면을 다시 그린다.
+  void _onLang() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    appLang.addListener(_onLang);
+  }
+
+  @override
+  void dispose() {
+    appLang.removeListener(_onLang);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 672),
-                child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 672),
+            child: Stack(
+              children: [
+                Column(
                   children: [
                     Expanded(
                       // 인원 카드 3장이 남는 세로 공간을 균등하게 나눠 화면을
@@ -121,20 +153,48 @@ class _SetupScreenState extends State<SetupScreen> {
                       child: LayoutBuilder(
                         builder: (context, constraints) {
                           final header = <Widget>[
-                            const SizedBox(height: CarbonSpacing.s7),
+                            // 본문 패딩(16)을 빼고 _homeHeaderTop에서 오버라인 시작.
+                            const SizedBox(
+                              height: _homeHeaderTop - CarbonSpacing.s5,
+                            ),
                             // 앱 정체(카네기 셋업 도우미)를 첫 화면에서 드러내는
                             // 오버라인 (시안 A, docs/mockups/home-title.html).
-                            const Text(
-                              'CARNEGIE · 카네기 셋업 도우미',
-                              style: CarbonText.helperText01,
+                            // 오버라인 줄 높이는 한영 스위치(24px)에 맞춘다.
+                            // 스위치 자체는 아이콘과 끝선을 맞추려고 아래
+                            // Stack에서 화면 기준으로 배치한다.
+                            SizedBox(
+                              height: 24,
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  tr(
+                                    'CARNEGIE · 카네기 셋업 도우미',
+                                    'CARNEGIE · SETUP HELPER',
+                                  ),
+                                  style: CarbonText.helperText01,
+                                ),
+                              ),
                             ),
                             const SizedBox(height: CarbonSpacing.s3),
-                            Text('게임 준비', style: CarbonText.heading05),
-                            const SizedBox(height: CarbonSpacing.s4),
                             Text(
-                              '부서 타일 제외 · 중립 디스크 배치 한 번에',
-                              style: CarbonText.body02.copyWith(
-                                color: CarbonColors.textSecondary,
+                              tr('게임 준비', 'Game Setup'),
+                              style: CarbonText.heading05,
+                            ),
+                            const SizedBox(height: CarbonSpacing.s4),
+                            // 한 줄 고정: 좁은 폭에서 줄바꿈되면 헤더가 길어져
+                            // 인원 카드가 넘치므로, 넘칠 때만 폭에 맞게 축소한다.
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                tr(
+                                  '부서 타일 제외 · 중립 디스크 배치 한 번에',
+                                  'Remove Department tiles · place neutral disks',
+                                ),
+                                maxLines: 1,
+                                style: CarbonText.body02.copyWith(
+                                  color: CarbonColors.textSecondary,
+                                ),
                               ),
                             ),
                             const SizedBox(height: CarbonSpacing.s5),
@@ -143,7 +203,10 @@ class _SetupScreenState extends State<SetupScreen> {
                             Row(
                               children: [
                                 CarbonContentSwitcher(
-                                  labels: const ['기본판', '확장 포함'],
+                                  labels: [
+                                    tr('기본판', 'Base Game'),
+                                    tr('확장 포함', 'With Expansion'),
+                                  ],
                                   selected: _expansion ? 1 : 0,
                                   onChanged: (i) =>
                                       setState(() => _expansion = i == 1),
@@ -158,8 +221,14 @@ class _SetupScreenState extends State<SetupScreen> {
                               height: 16,
                               child: Text(
                                 _expansion
-                                    ? '유형별 8종 중 4종을 추려 16종으로 플레이합니다'
-                                    : '기본판 부서 16종을 그대로 사용합니다',
+                                    ? tr(
+                                        '유형별 8종 중 4종을 추려 16종으로 플레이합니다',
+                                        'Draw 4 of the 8 Departments of each type — 16 in play',
+                                      )
+                                    : tr(
+                                        '기본판 부서 16종을 그대로 사용합니다',
+                                        'Uses the 16 base-game Departments as they are',
+                                      ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: CarbonText.helperText01,
@@ -180,9 +249,9 @@ class _SetupScreenState extends State<SetupScreen> {
                               ),
                             ),
                           );
-                          // 680 미만이면 카드 최소 높이(약 128px)가 안 나와
+                          // 700 미만이면 카드 최소 높이(약 128px)가 안 나와
                           // 넘치므로 스크롤 목록으로 전환한다.
-                          if (constraints.maxHeight < 680) {
+                          if (constraints.maxHeight < 700) {
                             return SingleChildScrollView(
                               padding: const EdgeInsets.all(CarbonSpacing.s5),
                               child: Column(
@@ -218,54 +287,75 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                   ],
                 ),
-              ),
+                // 상단 아이콘: 세부 페이지와 같은 TopBar(본문 열 안, 좌우 16 ·
+                // 위 8)를 본문 위에 겹쳐 둔다 — 본문 위치는 그대로 (사용자 확정).
+                Positioned(
+                  top: 0,
+                  left: CarbonSpacing.s5,
+                  right: CarbonSpacing.s5,
+                  child: TopBar(
+                    actions: [
+                      // 새로운 시작 계산기를 맨 왼쪽에 (사용자 확정).
+                      TopIconButton(
+                        icon: Icons.calculate_outlined,
+                        tooltip: tr('새로운 시작 계산기', 'A New Beginning Calculator'),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const NewBeginningScreen(),
+                          ),
+                        ),
+                      ),
+                      TopIconButton(
+                        icon: Icons.article_outlined,
+                        tooltip: tr('게임 룰 요약', 'Rules Summary'),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const RulesSummaryScreen(),
+                          ),
+                        ),
+                      ),
+                      TopIconButton(
+                        icon: Icons.menu_book_outlined,
+                        tooltip: tr('부서 도감', 'Department Guide'),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const DeptCatalogScreen(),
+                          ),
+                        ),
+                      ),
+                      TopIconButton(
+                        icon: Icons.info_outline,
+                        tooltip: tr('아이콘 참조표', 'Icon Reference'),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const IconReferenceScreen(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // 한영 스위치: 오버라인 줄 높이(_homeHeaderTop)에 두고, 오른쪽
+                // 끝선은 아이콘 참조표 아이콘 글리프(44px 버튼 안 22px →
+                // 버튼 끝에서 13px)에 맞춘다 (사용자 확정). 아이콘 줄보다
+                // 뒤에 둬서 터치가 스위치로 간다.
+                Positioned(
+                  top: _homeHeaderTop,
+                  right: CarbonSpacing.s5 + 13,
+                  child: CarbonContentSwitcher(
+                    dense: true,
+                    labels: const ['KO', 'EN'],
+                    selected: isEn ? 1 : 0,
+                    onChanged: (i) {
+                      // 언어는 즉시 바뀌고, 저장은 뒤에서 비동기로 끝난다.
+                      setAppLang(i == 1 ? AppLang.en : AppLang.ko);
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
             ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Row(
-                children: [
-                  // 새로운 시작 계산기를 맨 왼쪽에 (사용자 확정).
-                  TopIconButton(
-                    icon: Icons.calculate_outlined,
-                    tooltip: '새로운 시작 계산기',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const NewBeginningScreen(),
-                      ),
-                    ),
-                  ),
-                  TopIconButton(
-                    icon: Icons.article_outlined,
-                    tooltip: '게임 룰 요약',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const RulesSummaryScreen(),
-                      ),
-                    ),
-                  ),
-                  TopIconButton(
-                    icon: Icons.menu_book_outlined,
-                    tooltip: '부서 도감',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const DeptCatalogScreen(),
-                      ),
-                    ),
-                  ),
-                  TopIconButton(
-                    icon: Icons.info_outline,
-                    tooltip: '아이콘 참조표',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const IconReferenceScreen(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -344,16 +434,22 @@ class _PlayerTile extends StatelessWidget {
               ),
               const SizedBox(height: CarbonSpacing.s5),
               Text(
-                '타일 $removed개 제외',
+                tr('타일 $removed개 제외', 'Remove $removed tiles'),
                 style: CarbonText.body01.copyWith(
                   color: CarbonColors.supportError,
                 ),
               ),
-              Text('$kept개 사용', style: CarbonText.helperText01),
+              Text(
+                tr('$kept개 사용', '$kept tiles in play'),
+                style: CarbonText.helperText01,
+              ),
               Text(
                 disksByPlayerCount[players]! > 0
-                    ? '중립 디스크 ${disksByPlayerCount[players]}개'
-                    : '중립 디스크 없음',
+                    ? tr(
+                        '중립 디스크 ${disksByPlayerCount[players]}개',
+                        '${disksByPlayerCount[players]} neutral disks',
+                      )
+                    : tr('중립 디스크 없음', 'No neutral disks'),
                 style: CarbonText.helperText01,
               ),
             ],
@@ -410,20 +506,20 @@ class _ResultScreenState extends State<ResultScreen> {
                   child: Row(
                     children: [
                       _TabButton(
-                        label: '부서 타일',
+                        label: tr('부서 타일', 'Departments'),
                         icon: Icons.grid_view,
                         selected: _tab == 0,
                         onTap: () => setState(() => _tab = 0),
                       ),
                       _TabButton(
-                        label: '중립 디스크',
+                        label: tr('중립 디스크', 'Disks'),
                         icon: Icons.circle,
                         selected: _tab == 1,
                         onTap: () => setState(() => _tab = 1),
                       ),
                       if (_result.playerCount == 2)
                         _TabButton(
-                          label: '1인 도우미',
+                          label: tr('1인 도우미', 'Solo'),
                           icon: Icons.person_outline,
                           selected: _tab == 2,
                           onTap: () => setState(() => _tab = 2),
@@ -455,9 +551,18 @@ class _ResultScreenState extends State<ResultScreen> {
           Expanded(
             child: Row(
               children: [
-                Text(
-                  '${playerLabel(_result.playerCount)} 게임',
-                  style: CarbonText.heading05,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      tr(
+                        '${playerLabel(_result.playerCount)} 게임',
+                        playerLabel(_result.playerCount),
+                      ),
+                      style: CarbonText.heading05,
+                    ),
+                  ),
                 ),
                 // 인원 카드와 같은 비율(글자 크기 대비)의 확장 표식.
                 if (_result.isExpansion) ...[
@@ -472,7 +577,7 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
           ),
           CarbonContentSwitcher(
-            labels: const ['요약', '상세'],
+            labels: [tr('요약', 'Summary'), tr('상세', 'Details')],
             selected: _detail ? 1 : 0,
             onChanged: (i) => setState(() => _detail = i == 1),
           ),
@@ -483,6 +588,13 @@ class _ResultScreenState extends State<ResultScreen> {
       const SizedBox(height: CarbonSpacing.s5),
     ];
   }
+
+  /// 확장 모드 종류 고르기 헤더 (요약·상세 공통).
+  String get _chooseKindsTitle => tr('종류 고르기', 'Choose Departments');
+  String get _chooseKindsSubtitle => tr(
+    '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+    'Take both copies of these numbers only — return the rest to the box',
+  );
 
   void _reroll() => setState(
     () => _result = _result.isExpansion
@@ -521,8 +633,8 @@ class _ResultScreenState extends State<ResultScreen> {
             children: [
               ..._deptHeaderChildren(),
               _diskSectionHeader(
-                '종류 고르기',
-                '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+                _chooseKindsTitle,
+                _chooseKindsSubtitle,
                 Icons.grid_view,
                 trailing: _rerollIconButton(),
               ),
@@ -530,8 +642,11 @@ class _ResultScreenState extends State<ResultScreen> {
               _KindCleanupCard(result: _result, onTapDept: _showDetail),
               const SizedBox(height: CarbonSpacing.s6),
               _diskSectionHeader(
-                '타일 제외',
-                '꺼내 온 32장에서 아래 타일을 표시된 장수만큼 빼세요',
+                tr('타일 제외', 'Remove Tiles'),
+                tr(
+                  '꺼내 온 32장에서 아래 타일을 표시된 장수만큼 빼세요',
+                  'From those 32 tiles, remove the tiles below in the quantities shown',
+                ),
                 Icons.archive_outlined,
               ),
             ],
@@ -582,8 +697,11 @@ class _ResultScreenState extends State<ResultScreen> {
             padding: const EdgeInsets.symmetric(horizontal: CarbonSpacing.s5),
             sliver: SliverToBoxAdapter(
               child: _diskSectionHeader(
-                '타일 제외',
-                '아래 타일을 표시된 장수만큼 상자에 되돌리세요',
+                tr('타일 제외', 'Remove Tiles'),
+                tr(
+                  '아래 타일을 표시된 장수만큼 상자에 되돌리세요',
+                  'Return the tiles below to the game box in the quantities shown',
+                ),
                 Icons.archive_outlined,
                 trailing: _rerollIconButton(),
               ),
@@ -597,8 +715,8 @@ class _ResultScreenState extends State<ResultScreen> {
               children: _result.isExpansion
                   ? [
                       _diskSectionHeader(
-                        '종류 고르기',
-                        '아래 번호만 2장씩 꺼내기 — 나머지는 상자로',
+                        _chooseKindsTitle,
+                        _chooseKindsSubtitle,
                         Icons.grid_view,
                         trailing: _rerollIconButton(),
                       ),
@@ -607,8 +725,11 @@ class _ResultScreenState extends State<ResultScreen> {
                     ]
                   : [
                       _diskSectionHeader(
-                        '전체 부서',
-                        '16종 전체 — 사용·제외 상태 표시',
+                        tr('전체 부서', 'All Departments'),
+                        tr(
+                          '16종 전체 — 사용·제외 상태 표시',
+                          'All 16 Departments — in play / removed',
+                        ),
                         Icons.grid_view,
                         trailing: _rerollIconButton(),
                       ),
@@ -650,9 +771,9 @@ class _ResultScreenState extends State<ResultScreen> {
                         fit: BoxFit.contain,
                       ),
                       const SizedBox(width: CarbonSpacing.s3),
-                      Text(type.ko, style: CarbonText.heading02),
+                      Text(type.label, style: CarbonText.heading02),
                       const SizedBox(width: CarbonSpacing.s3),
-                      Text(type.en, style: CarbonText.helperText01),
+                      Text(type.altLabel, style: CarbonText.helperText01),
                     ],
                   ),
                 ),
@@ -714,10 +835,16 @@ class _ResultScreenState extends State<ResultScreen> {
                 color: CarbonColors.borderStrong,
               ),
               const SizedBox(height: CarbonSpacing.s6),
-              Text('중립 디스크 없음', style: CarbonText.heading03),
+              Text(
+                tr('중립 디스크 없음', 'No Neutral Disks'),
+                style: CarbonText.heading03,
+              ),
               const SizedBox(height: CarbonSpacing.s3),
               Text(
-                '1인 게임에서는 게임판에 미리 놓는 디스크가 없습니다',
+                tr(
+                  '1인 게임에서는 게임판에 미리 놓는 디스크가 없습니다',
+                  'In a solo game, no disks are placed on the board in advance',
+                ),
                 textAlign: TextAlign.center,
                 style: CarbonText.body01.copyWith(
                   color: CarbonColors.textHelper,
@@ -741,10 +868,16 @@ class _ResultScreenState extends State<ResultScreen> {
                 color: CarbonColors.borderStrong,
               ),
               const SizedBox(height: CarbonSpacing.s6),
-              Text('중립 디스크를 사용하지 않습니다', style: CarbonText.heading03),
+              Text(
+                tr('중립 디스크를 사용하지 않습니다', 'No Neutral Disks Used'),
+                style: CarbonText.heading03,
+              ),
               const SizedBox(height: CarbonSpacing.s3),
               Text(
-                '4인 게임에서는 이 과정을 생략합니다',
+                tr(
+                  '4인 게임에서는 이 과정을 생략합니다',
+                  'For a 4-player game, skip this step.',
+                ),
                 textAlign: TextAlign.center,
                 style: CarbonText.body01.copyWith(
                   color: CarbonColors.textHelper,
@@ -758,17 +891,29 @@ class _ResultScreenState extends State<ResultScreen> {
     return ListView(
       padding: const EdgeInsets.all(CarbonSpacing.s5),
       children: [
-        Text('중립 디스크 ${_disks.totalDisks}개', style: CarbonText.heading05),
+        Text(
+          tr(
+            '중립 디스크 ${_disks.totalDisks}개',
+            '${_disks.totalDisks} Neutral Disks',
+          ),
+          style: CarbonText.heading05,
+        ),
         const SizedBox(height: CarbonSpacing.s3),
         Text(
-          '게임에 참여하지 않는 색상의 디스크를 아래대로 게임판에 놓으세요.',
+          tr(
+            '게임에 참여하지 않는 색상의 디스크를 아래대로 게임판에 놓으세요.',
+            'Place disks from an unused player color on the game board as shown below.',
+          ),
           style: CarbonText.body01.copyWith(color: CarbonColors.textSecondary),
         ),
         const SizedBox(height: CarbonSpacing.s6),
         // 다시 뽑기는 부서 타일과 같은 형식 — 첫 섹션 헤더 우측 아이콘.
         _diskSectionHeader(
-          '기부 차트',
-          '${_disks.donations.length}개 · 표시된 칸에 디스크 1개씩',
+          tr('기부 차트', 'Donation Chart'),
+          tr(
+            '${_disks.donations.length}개 · 표시된 칸에 디스크 1개씩',
+            '${_disks.donations.length} · 1 disk on each space shown',
+          ),
           Icons.volunteer_activism_outlined,
           trailing: _rerollIconButton(
             () => setState(() => _disks = drawDisks(_result.playerCount)),
@@ -778,26 +923,36 @@ class _ResultScreenState extends State<ResultScreen> {
         _DiskListCard(
           rows: [
             for (final code in ([..._disks.donations]..sort()))
-              (code, '${donationRows[code[0]]} · ${code.substring(1)}번 칸', 1),
+              (
+                code,
+                tr(
+                  '${donationRowName(code[0])} · ${code.substring(1)}번 칸',
+                  '${donationRowName(code[0])} · space ${code.substring(1)}',
+                ),
+                1,
+              ),
           ],
           showCount: false,
         ),
         const SizedBox(height: CarbonSpacing.s6),
         _diskSectionHeader(
-          '도시 건설 부지',
-          '${_disks.cityTotal}개 · 각 도시의 가장 왼쪽 빈 건설 부지부터',
+          tr('도시 건설 부지', 'City Construction Spaces'),
+          tr(
+            '${_disks.cityTotal}개 · 각 도시의 가장 왼쪽 빈 건설 부지부터',
+            '${_disks.cityTotal} · leftmost unoccupied construction space of each city first',
+          ),
           Icons.location_city,
         ),
         for (final region in cityRegions.keys)
           if (cityRegions[region]!.any(_disks.cityDisks.containsKey)) ...[
             const SizedBox(height: CarbonSpacing.s4),
             _DiskListCard(
-              title: region,
+              title: regionName(region),
               titleColor: regionColors[region],
               rows: [
                 for (final city in cityRegions[region]!)
                   if (_disks.cityDisks.containsKey(city))
-                    (null, city, _disks.cityDisks[city]!),
+                    (null, cityName(city), _disks.cityDisks[city]!),
               ],
               showCount: true,
             ),
@@ -811,70 +966,185 @@ class _ResultScreenState extends State<ResultScreen> {
     return ListView(
       padding: const EdgeInsets.all(CarbonSpacing.s5),
       children: [
-        Text('1인 도우미', style: CarbonText.heading05),
+        Text(tr('1인 도우미', 'Solo Aid'), style: CarbonText.heading05),
         const SizedBox(height: CarbonSpacing.s3),
         Text(
-          '앤드류 카네기를 상대하는 라운드 진행 요약입니다.',
+          tr(
+            '앤드류 카네기를 상대하는 라운드 진행 요약입니다.',
+            'A round-by-round summary for playing against Andrew Carnegie.',
+          ),
           style: CarbonText.body01.copyWith(color: CarbonColors.textSecondary),
         ),
         const SizedBox(height: CarbonSpacing.s6),
-        _diskSectionHeader('라운드 진행', '5단계', Icons.loop),
+        _diskSectionHeader(
+          tr('라운드 진행', 'Round Sequence'),
+          tr('5단계', '5 steps'),
+          Icons.loop,
+        ),
         const SizedBox(height: CarbonSpacing.s4),
-        const _DiskListCard(
+        _DiskListCard(
           showCount: false,
           rows: [
-            ('1', '새 행동 카드 — 앤드류의 맨 위 카드를 보지 않고 0점 카드 아래 뒷면으로 놓기', 0),
-            ('2', '행동 선택 — 기관차 왼쪽: 플레이어가 선택 · 오른쪽: 카드를 공개해 앤드류가 선택', 0),
-            ('3', '앤드류의 차례 — 이벤트 처리 후 카드의 행동 해결', 0),
-            ('4', '플레이어의 차례 — 이벤트(수입/기부) 해결 후 해당 종류 부서 사용', 0),
+            (
+              '1',
+              tr(
+                '새 행동 카드 — 앤드류의 맨 위 카드를 보지 않고 0점 카드 아래 뒷면으로 놓기',
+                "New Action Card — draw Andrew's top action card and, without looking at it, place it face-down below the 0 VP card",
+              ),
+              0,
+            ),
+            (
+              '2',
+              tr(
+                '행동 선택 — 기관차 왼쪽: 플레이어가 선택 · 오른쪽: 카드를 공개해 앤드류가 선택',
+                'Choice of Action — locomotive to the left: you choose · to the right: flip the action card face-up; Andrew chooses',
+              ),
+              0,
+            ),
+            (
+              '3',
+              tr(
+                '앤드류의 차례 — 이벤트 처리 후 카드의 행동 해결',
+                "Andrew's Turn — resolve the event, then resolve Andrew's action on the card",
+              ),
+              0,
+            ),
+            (
+              '4',
+              tr(
+                '플레이어의 차례 — 이벤트(수입/기부) 해결 후 해당 종류 부서 사용',
+                "Player's Turn — resolve events (Take Income / Make a Donation), then use your Departments of that type",
+              ),
+              0,
+            ),
             (
               '5',
-              '라운드 종료 — 직원 활성화 → 행동 마커 1칸 전진 → 카드를 도달한 승점 카드 아래 뒷면으로 → 기관차를 반대편으로',
+              tr(
+                '라운드 종료 — 직원 활성화 → 행동 마커 1칸 전진 → 카드를 도달한 승점 카드 아래 뒷면으로 → 기관차를 반대편으로',
+                "End of Round — activate employees → move the action marker 1 space right → place Andrew's card face-down under the VP card it has reached → move the locomotive to the other side",
+              ),
               0,
             ),
           ],
         ),
         const SizedBox(height: CarbonSpacing.s6),
         _diskSectionHeader(
-          '앤드류 행동 해결',
-          '불가 1건당 카드 1칸 오른쪽 이동',
+          tr('앤드류 행동 해결', "Resolve Andrew's Action"),
+          tr(
+            '불가 1건당 카드 1칸 오른쪽 이동',
+            'Slide the card 1 space right for each one that cannot be done',
+          ),
           Icons.smart_toy_outlined,
         ),
         const SizedBox(height: CarbonSpacing.s4),
-        const _DiskListCard(
+        _DiskListCard(
           showCount: false,
           rows: [
-            (null, '인사 — 카드에 표시된 칸 수만큼 카드를 오른쪽으로 이동', 0),
-            (null, '경영 — 표시된 종류의 부서 타일 1~3개 획득 (항상 가장 낮은 번호부터)', 0),
-            (null, '건설 — 표시된 각 도시의 가장 왼쪽 건설 부지에 디스크 1개씩', 0),
-            (null, 'R&D — 표시된 지역의 운송 디스크를 1~3칸 오른쪽으로 이동', 0),
-          ],
-        ),
-        const SizedBox(height: CarbonSpacing.s6),
-        _diskSectionHeader('이벤트 (앤드류)', '', Icons.event_note_outlined),
-        const SizedBox(height: CarbonSpacing.s4),
-        const _DiskListCard(
-          showCount: false,
-          rows: [
-            (null, '파견 칸 — 앤드류에게는 아무 일도 일어나지 않음', 0),
             (
               null,
-              '기부 칸 — 카드 상단의 기부 칸에 디스크 1개 (칸이 차 있으면 생략) 후 카드를 오른쪽으로 1칸',
+              tr(
+                '인사 — 카드에 표시된 칸 수만큼 카드를 오른쪽으로 이동',
+                'Human Resources — slide the action card to the right by the number of spaces indicated',
+              ),
+              0,
+            ),
+            (
+              null,
+              tr(
+                '경영 — 표시된 종류의 부서 타일 1~3개 획득 (항상 가장 낮은 번호부터)',
+                'Management — take 1-3 Department tiles of the type shown (always the lowest number available)',
+              ),
+              0,
+            ),
+            (
+              null,
+              tr(
+                '건설 — 표시된 각 도시의 가장 왼쪽 건설 부지에 디스크 1개씩',
+                'Construction — place a disk on the leftmost space of each city named on the card',
+              ),
+              0,
+            ),
+            (
+              null,
+              tr(
+                'R&D — 표시된 지역의 운송 디스크를 1~3칸 오른쪽으로 이동',
+                'R&D — move the transport disk in the region shown 1-3 spaces to the right',
+              ),
               0,
             ),
           ],
         ),
         const SizedBox(height: CarbonSpacing.s6),
-        _diskSectionHeader('앤드류 점수 계산', '게임 종료 시', Icons.emoji_events_outlined),
+        _diskSectionHeader(
+          tr('이벤트 (앤드류)', 'Events (Andrew)'),
+          '',
+          Icons.event_note_outlined,
+        ),
         const SizedBox(height: CarbonSpacing.s4),
-        const _DiskListCard(
+        _DiskListCard(
           showCount: false,
           rows: [
-            (null, '행동 카드 — 놓인 승점 카드의 점수만큼', 0),
-            (null, '부서 타일 1개당 2점', 0),
-            (null, '운송 트랙 마지막 칸 도달 디스크 1개당 6점', 0),
-            (null, '건설 디스크 — 도시에 표시된 0~3점', 0),
-            (null, '기부 디스크 — 플레이어의 진행 기준으로 계산', 0),
+            (
+              null,
+              tr(
+                '파견 칸 — 앤드류에게는 아무 일도 일어나지 않음',
+                'Mission area space — nothing happens for Andrew',
+              ),
+              0,
+            ),
+            (
+              null,
+              tr(
+                '기부 칸 — 카드 상단의 기부 칸에 디스크 1개 (칸이 차 있으면 생략) 후 카드를 오른쪽으로 1칸',
+                'Donation symbol — place a disk on the donation space shown at the top of the card; if it is occupied (or Andrew is out of disks), place none and slide the card 1 space right',
+              ),
+              0,
+            ),
+          ],
+        ),
+        const SizedBox(height: CarbonSpacing.s6),
+        _diskSectionHeader(
+          tr('앤드류 점수 계산', "Andrew's Scoring"),
+          tr('게임 종료 시', 'At the end of the game'),
+          Icons.emoji_events_outlined,
+        ),
+        const SizedBox(height: CarbonSpacing.s4),
+        _DiskListCard(
+          showCount: false,
+          rows: [
+            (
+              null,
+              tr(
+                '행동 카드 — 놓인 승점 카드의 점수만큼',
+                'Action cards — the VP of the VP card each one is under',
+              ),
+              0,
+            ),
+            (null, tr('부서 타일 1개당 2점', '2 VP per Department tile'), 0),
+            (
+              null,
+              tr(
+                '운송 트랙 마지막 칸 도달 디스크 1개당 6점',
+                '6 VP per transport disk that reached the last box of a transportation track',
+              ),
+              0,
+            ),
+            (
+              null,
+              tr(
+                '건설 디스크 — 도시에 표시된 0~3점',
+                'Construction disks — 0-3 VP each, as shown for each city',
+              ),
+              0,
+            ),
+            (
+              null,
+              tr(
+                '기부 디스크 — 플레이어의 진행 기준으로 계산',
+                'Donation disks — scored according to what you built',
+              ),
+              0,
+            ),
           ],
         ),
         const SizedBox(height: CarbonSpacing.s8),
@@ -999,14 +1269,14 @@ class _SummaryBar extends StatelessWidget {
       return Row(
         children: [
           stat(
-            '사용할 종류',
+            tr('사용할 종류', 'Departments Used'),
             result.selectedKinds!.length,
             CarbonColors.supportSuccess,
             Icons.grid_view,
           ),
           const SizedBox(width: CarbonSpacing.s3),
           stat(
-            '제외할 타일',
+            tr('제외할 타일', 'Tiles to Remove'),
             result.totalRemoved,
             CarbonColors.supportError,
             Icons.archive_outlined,
@@ -1017,14 +1287,14 @@ class _SummaryBar extends StatelessWidget {
     return Row(
       children: [
         stat(
-          '상자에 되돌릴 타일',
+          tr('상자에 되돌릴 타일', 'Return to Box'),
           result.totalRemoved,
           CarbonColors.supportError,
           Icons.archive_outlined,
         ),
         const SizedBox(width: CarbonSpacing.s3),
         stat(
-          '테이블에 놓을 타일',
+          tr('테이블에 놓을 타일', 'Place on Table'),
           result.totalKept,
           CarbonColors.supportSuccess,
           Icons.table_bar_outlined,
@@ -1067,9 +1337,9 @@ class _KindCleanupCard extends StatelessWidget {
               child: Row(
                 children: [
                   SizedBox(
-                    width: 64,
+                    width: isEn ? 104 : 64,
                     child: Text(
-                      type.ko,
+                      type.label,
                       style: CarbonText.heading01.copyWith(
                         color: deptTypeColorOf(type),
                         fontWeight: FontWeight.w800,
@@ -1199,7 +1469,7 @@ class _TypeTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CarbonTag(
-      text: type.ko,
+      text: type.label,
       bg: CarbonColors.tagGrayBg,
       fg: CarbonColors.tagGrayText,
     );
@@ -1238,9 +1508,9 @@ class _DeptDetailSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(dept.ko, style: CarbonText.heading03),
+                      Text(dept.name, style: CarbonText.heading03),
                       const SizedBox(height: 2),
-                      Text(dept.en, style: CarbonText.helperText01),
+                      Text(dept.altName, style: CarbonText.helperText01),
                     ],
                   ),
                 ),
@@ -1270,39 +1540,39 @@ class _DeptDetailSheet extends StatelessWidget {
               children: [
                 _TypeTag(type: dept.type),
                 if (dept.expansion)
-                  const CarbonTag(
-                    text: '확장',
+                  CarbonTag(
+                    text: tr('확장', 'Expansion'),
                     bg: CarbonColors.tagGrayBg,
                     fg: CarbonColors.tagGrayText,
                   ),
                 if (dept.ongoing)
-                  const CarbonTag(
-                    text: '지속 효과',
+                  CarbonTag(
+                    text: tr('지속 효과', 'Ongoing'),
                     bg: CarbonColors.tagAccentBg,
                     fg: CarbonColors.tagAccentText,
                   ),
                 if (dept.endgame)
-                  const CarbonTag(
-                    text: '게임 종료',
+                  CarbonTag(
+                    text: tr('게임 종료', 'Final Scoring'),
                     bg: CarbonColors.tagAccentBg,
                     fg: CarbonColors.tagAccentText,
                   ),
                 if (boxed)
-                  const CarbonTag(
-                    text: '이번 게임 미사용',
+                  CarbonTag(
+                    text: tr('이번 게임 미사용', 'Not in this game'),
                     bg: CarbonColors.tagGrayBg,
                     fg: CarbonColors.tagGrayText,
                   )
                 else ...[
                   if (removedCount > 0)
                     CarbonTag(
-                      text: '$removedCount장 제외',
+                      text: tr('$removedCount장 제외', 'Remove $removedCount'),
                       bg: CarbonColors.tagRedBg,
                       fg: CarbonColors.tagRedText,
                     ),
                   if (kept > 0)
                     CarbonTag(
-                      text: '$kept장 사용',
+                      text: tr('$kept장 사용', '$kept in play'),
                       bg: CarbonColors.tagGreenBg,
                       fg: CarbonColors.tagGreenText,
                     ),
@@ -1310,9 +1580,9 @@ class _DeptDetailSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: CarbonSpacing.s5),
-            Text('규칙', style: CarbonText.label01),
+            Text(tr('규칙', 'Rules'), style: CarbonText.label01),
             const SizedBox(height: CarbonSpacing.s2),
-            Text(dept.rule, style: CarbonText.body02),
+            Text(dept.ruleText, style: CarbonText.body02),
           ],
         ),
       ),
@@ -1465,7 +1735,10 @@ class _DiskListCard extends StatelessWidget {
                   Expanded(child: Text(row.$2, style: CarbonText.body01)),
                   if (showCount)
                     CarbonTag(
-                      text: '${row.$3}개',
+                      text: tr(
+                        '${row.$3}개',
+                        row.$3 == 1 ? '1 disk' : '${row.$3} disks',
+                      ),
                       bg: CarbonColors.tagGrayBg,
                       fg: CarbonColors.tagGrayText,
                     ),
